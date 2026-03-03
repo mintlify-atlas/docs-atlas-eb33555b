@@ -1,0 +1,139 @@
+{
+  "projectType": "saas",
+  "projectName": "Nicotine+",
+  "projectDescription": "Graphical client for the Soulseek peer-to-peer network for file sharing and chat",
+  "theme": "palm",
+  "primaryColor": "#4CAF50",
+  "lightColor": "#81C784",
+  "darkColor": "#2E7D32",
+  "navigation": {
+    "tabs": [
+      {
+        "tab": "Documentation",
+        "groups": [
+          {
+            "group": "Get Started",
+            "pages": [
+              "introduction",
+              "downloads",
+              "quickstart"
+            ]
+          },
+          {
+            "group": "Core Features",
+            "pages": [
+              "features/file-sharing",
+              "features/search",
+              "features/downloads-uploads",
+              "features/chat",
+              "features/user-management"
+            ]
+          },
+          {
+            "group": "Configuration",
+            "pages": [
+              "configuration/settings",
+              "configuration/network",
+              "configuration/shares"
+            ]
+          },
+          {
+            "group": "Advanced",
+            "pages": [
+              "advanced/plugins",
+              "advanced/cli",
+              "advanced/protocol"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "Development",
+        "groups": [
+          {
+            "group": "Contributing",
+            "pages": [
+              "development/overview",
+              "development/setup",
+              "development/architecture",
+              "development/testing"
+            ]
+          },
+          {
+            "group": "Plugin Development",
+            "pages": [
+              "development/plugins/getting-started",
+              "development/plugins/api-reference",
+              "development/plugins/examples"
+            ]
+          },
+          {
+            "group": "Distribution",
+            "pages": [
+              "development/packaging",
+              "development/translations"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "API Reference",
+        "groups": [
+          {
+            "group": "Core Modules",
+            "pages": [
+              "api/core",
+              "api/config",
+              "api/events"
+            ]
+          },
+          {
+            "group": "Network",
+            "pages": [
+              "api/slskproto",
+              "api/slskmessages",
+              "api/network-filter"
+            ]
+          },
+          {
+            "group": "Features",
+            "pages": [
+              "api/shares",
+              "api/search",
+              "api/transfers",
+              "api/chat"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "keyFeatures": [
+    "File sharing and searching on Soulseek P2P network",
+    "Private and public chat rooms",
+    "User buddy lists and private messaging",
+    "Download and upload queue management",
+    "Plugin system for extensibility",
+    "Headless mode for server deployment",
+    "GTK3/GTK4 graphical interface",
+    "Cross-platform support (Linux, Windows, macOS)"
+  ],
+  "publicApiSurface": [
+    "pynicotine.core.Core",
+    "pynicotine.config.Config",
+    "pynicotine.shares.Shares",
+    "pynicotine.search.Search",
+    "pynicotine.downloads.Downloads",
+    "pynicotine.uploads.Uploads",
+    "pynicotine.chatrooms.ChatRooms",
+    "pynicotine.privatechat.PrivateChat",
+    "pynicotine.buddies.Buddies",
+    "pynicotine.pluginsystem.BasePlugin",
+    "pynicotine.slskproto.NetworkThread",
+    "pynicotine.slskmessages",
+    "pynicotine.events.Events",
+    "CLI: nicotine --help",
+    "CLI: nicotine --headless",
+    "CLI: nicotine --rescan"
+  ]
+}
