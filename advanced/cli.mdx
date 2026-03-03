@@ -1,0 +1,412 @@
+---
+title: Command-Line Interface
+description: Launch Nicotine+ with command-line arguments for automation and advanced configurations
+---
+
+Nicotine+ supports various command-line arguments that allow you to customize startup behavior, specify alternative configurations, and automate tasks.
+
+## Basic Usage
+
+The basic command to launch Nicotine+ is:
+
+```bash
+nicotine
+```
+
+You can add various arguments to modify the behavior:
+
+```bash
+nicotine [OPTIONS]
+```
+
+## Available Arguments
+
+### Help and Version
+
+#### `-h, --help`
+
+Display help message with all available options and exit.
+
+```bash
+nicotine --help
+```
+
+#### `-v, --version`
+
+Display the Nicotine+ version and exit.
+
+```bash
+nicotine --version
+# Output: Nicotine+ 3.4.0.dev1
+```
+
+### Configuration Options
+
+#### `-c, --config <file>`
+
+Use a non-default configuration file. This is useful for:
+- Running multiple instances with different configurations
+- Testing new settings without affecting your main config
+- Profile-based configurations
+
+```bash
+# Use custom config file
+nicotine --config ~/.config/nicotine/config.custom
+
+# Run with test configuration
+nicotine -c /tmp/test-config
+```
+
+<Note>
+When using a custom config file, Nicotine+ automatically allows multiple instances to run simultaneously.
+</Note>
+
+#### `-u, --user-data <folder>`
+
+Specify an alternative folder for user data and plugins. This overrides the default data directory.
+
+**Default locations:**
+- Linux: `~/.local/share/nicotine/`
+- macOS: `~/Library/Application Support/nicotine/`
+- Windows: `%APPDATA%\nicotine\`
+
+```bash
+# Use custom data folder
+nicotine --user-data ~/nicotine-testing
+
+# Portable installation on external drive
+nicotine -u /media/usb/nicotine-data
+```
+
+<Tip>
+The user data folder contains plugins, downloaded files metadata, chat logs, and other application data.
+</Tip>
+
+### Display Options
+
+#### `-s, --hidden`
+
+Start Nicotine+ without showing the main window. The application runs in the background and can be accessed from the system tray icon (if enabled).
+
+```bash
+# Start minimized to tray
+nicotine --hidden
+```
+
+This is useful for:
+- Starting Nicotine+ at system boot
+- Running as a background service
+- Minimizing system resource usage on startup
+
+#### `-n, --headless`
+
+Start Nicotine+ in headless mode with no graphical interface. This mode is designed for:
+- Server deployments
+- Docker containers
+- Remote systems without a display
+- CLI-only automation
+
+```bash
+# Run without GUI
+nicotine --headless
+```
+
+<Warning>
+In headless mode, you can only interact with Nicotine+ through log files and the file system. Ensure your configuration is correct before using this mode.
+</Warning>
+
+### Network Options
+
+#### `-b, --bindip <ip>`
+
+Bind network sockets to a specific IP address. This is particularly useful when:
+- Using a VPN and you want to bind to the VPN interface
+- Running multiple network interfaces
+- Ensuring traffic goes through a specific network adapter
+
+```bash
+# Bind to VPN interface
+nicotine --bindip 10.8.0.5
+
+# Bind to specific network interface
+nicotine -b 192.168.1.100
+```
+
+<Info>
+If you're using a VPN, binding to the VPN IP ensures all Soulseek traffic routes through the VPN, preventing leaks if the VPN disconnects.
+</Info>
+
+#### `-l, --port <port>`
+
+Listen on a specific port number instead of the default (2234) or configured port.
+
+```bash
+# Use custom port
+nicotine --port 5000
+
+# Use port from environment variable
+nicotine -l ${SLSK_PORT}
+```
+
+Common use cases:
+- Port forwarding requirements
+- Avoiding port conflicts
+- Firewall configurations
+
+### File Sharing Options
+
+#### `-r, --rescan`
+
+Rescan shared files and exit immediately. This updates your file index without starting the full application.
+
+```bash
+# Rescan and exit
+nicotine --rescan
+```
+
+<Steps>
+  <Step title="Scan initiated">
+    Nicotine+ starts and begins scanning configured shared folders.
+  </Step>
+  
+  <Step title="Index updated">
+    The file database is updated with new files, removed files, and metadata changes.
+  </Step>
+  
+  <Step title="Automatic exit">
+    Once scanning completes, Nicotine+ exits automatically.
+  </Step>
+</Steps>
+
+This is useful for:
+- Scheduled updates via cron jobs
+- CI/CD pipelines
+- Automated maintenance scripts
+
+**Example cron job** (rescan daily at 3 AM):
+```bash
+0 3 * * * /usr/bin/nicotine --rescan >> /var/log/nicotine-rescan.log 2>&1
+```
+
+## Combining Arguments
+
+You can combine multiple arguments for complex configurations:
+
+<CodeGroup>
+```bash VPN with Custom Config
+# Run with VPN binding and custom config
+nicotine --bindip 10.8.0.5 --config ~/.config/nicotine/vpn-config
+```
+
+```bash Background Service
+# Start hidden with custom port
+nicotine --hidden --port 5000
+```
+
+```bash Testing Environment
+# Test configuration with separate data folder
+nicotine --config /tmp/test-config --user-data /tmp/test-data
+```
+
+```bash Headless Server
+# Run as headless server with custom settings
+nicotine --headless --bindip 0.0.0.0 --port 2234 --user-data /srv/nicotine
+```
+</CodeGroup>
+
+## Exit Codes
+
+Nicotine+ returns different exit codes based on the result:
+
+- `0` - Success
+- `1` - Error occurred (e.g., Python version too old, rescan failed)
+
+```bash
+# Check exit code
+nicotine --rescan
+if [ $? -eq 0 ]; then
+    echo "Rescan successful"
+else
+    echo "Rescan failed"
+fi
+```
+
+## Environment Variables
+
+While not direct CLI arguments, these environment variables affect Nicotine+:
+
+### `XDG_CONFIG_HOME`
+
+Overrides the default config directory on Linux:
+
+```bash
+export XDG_CONFIG_HOME=~/my-configs
+nicotine  # Config will be in ~/my-configs/nicotine/
+```
+
+### `XDG_DATA_HOME`
+
+Overrides the default data directory on Linux:
+
+```bash
+export XDG_DATA_HOME=~/my-data
+nicotine  # Data will be in ~/my-data/nicotine/
+```
+
+## Automation Examples
+
+### Systemd Service
+
+Run Nicotine+ as a systemd service:
+
+```ini /etc/systemd/system/nicotine.service
+[Unit]
+Description=Nicotine+ Soulseek Client
+After=network.target
+
+[Service]
+Type=simple
+User=youruser
+ExecStart=/usr/bin/nicotine --headless
+Restart=on-failure
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target
+```
+
+Enable and start:
+```bash
+sudo systemctl enable nicotine
+sudo systemctl start nicotine
+```
+
+### Docker Container
+
+Run Nicotine+ in Docker:
+
+```dockerfile Dockerfile
+FROM python:3.11
+RUN pip install nicotine-plus
+
+VOLUME /data
+EXPOSE 2234
+
+CMD ["nicotine", "--headless", "--user-data", "/data"]
+```
+
+```bash
+# Build and run
+docker build -t nicotine .
+docker run -d -v ~/nicotine-data:/data -p 2234:2234 nicotine
+```
+
+### Automated Testing Script
+
+```bash test-nicotine.sh
+#!/bin/bash
+
+# Create temporary directories
+TEST_DIR=$(mktemp -d)
+TEST_CONFIG="$TEST_DIR/config"
+TEST_DATA="$TEST_DIR/data"
+
+# Run with test configuration
+nicotine --config "$TEST_CONFIG" --user-data "$TEST_DATA" --headless &
+NICOTINE_PID=$!
+
+# Wait for startup
+sleep 5
+
+# Run tests...
+echo "Running tests..."
+
+# Cleanup
+kill $NICOTINE_PID
+rm -rf "$TEST_DIR"
+```
+
+## Troubleshooting
+
+### Multiple Instances
+
+By default, Nicotine+ prevents running multiple instances. To run multiple instances:
+
+```bash
+# Each instance needs its own config
+nicotine --config ~/.config/nicotine/instance1 &
+nicotine --config ~/.config/nicotine/instance2 &
+```
+
+### Permission Errors
+
+If you encounter permission errors:
+
+```bash
+# Ensure config directory is writable
+chmod 755 ~/.config/nicotine
+
+# Ensure data directory is writable
+chmod 755 ~/.local/share/nicotine
+```
+
+### Port Already in Use
+
+```bash
+# Check what's using the port
+sudo lsof -i :2234
+
+# Use a different port
+nicotine --port 2235
+```
+
+### Headless Mode Not Working
+
+Ensure all configuration is done before running headless:
+
+<Steps>
+  <Step title="Configure with GUI">
+    Run Nicotine+ normally and configure all settings.
+  </Step>
+  
+  <Step title="Test configuration">
+    Verify settings work correctly with the GUI.
+  </Step>
+  
+  <Step title="Switch to headless">
+    Once configured, start with `--headless` flag.
+  </Step>
+</Steps>
+
+## Hidden Arguments
+
+Nicotine+ has a few undocumented arguments for special use cases:
+
+### `--ci-mode`
+
+Disables critical error dialogs. Used for automated testing and CI/CD pipelines.
+
+```bash
+nicotine --ci-mode
+```
+
+### `--isolated`
+
+Disables features requiring external applications. Useful for:
+- Docker containers
+- Sandboxed environments
+- Minimal installations
+
+```bash
+nicotine --isolated
+```
+
+<Note>
+These hidden arguments are not shown in `--help` output and are intended for advanced use cases only.
+</Note>
+
+## Next Steps
+
+- Learn about [Plugins](/advanced/plugins) to extend functionality
+- Explore the [Soulseek Protocol](/advanced/protocol) for technical details
+- Check out configuration options in the GUI settings

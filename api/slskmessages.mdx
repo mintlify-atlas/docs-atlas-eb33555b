@@ -1,0 +1,376 @@
+---
+title: Protocol Messages (slskmessages)
+description: Soulseek protocol message definitions and utilities
+---
+
+The `slskmessages` module defines all protocol messages used in the Soulseek network.
+
+## Message Types
+
+### MessageType Constants
+
+<ParamField path="INTERNAL" type="str" value="N">
+  Internal application messages
+</ParamField>
+
+<ParamField path="SERVER" type="str" value="S">
+  Server protocol messages
+</ParamField>
+
+<ParamField path="PEER" type="str" value="P">
+  Peer protocol messages
+</ParamField>
+
+<ParamField path="FILE" type="str" value="F">
+  File transfer messages
+</ParamField>
+
+<ParamField path="DISTRIBUTED" type="str" value="D">
+  Distributed network messages
+</ParamField>
+
+## Status Constants
+
+### UserStatus
+
+<ParamField path="OFFLINE" type="int" value="0">
+  User is offline
+</ParamField>
+
+<ParamField path="AWAY" type="int" value="1">
+  User is away
+</ParamField>
+
+<ParamField path="ONLINE" type="int" value="2">
+  User is online
+</ParamField>
+
+### TransferRejectReason
+
+<ParamField path="QUEUED" type="str">
+  Transfer is queued
+</ParamField>
+
+<ParamField path="BANNED" type="str">
+  User is banned
+</ParamField>
+
+<ParamField path="FILE_NOT_SHARED" type="str">
+  File is not shared
+</ParamField>
+
+<ParamField path="TOO_MANY_FILES" type="str">
+  Queue file limit reached
+</ParamField>
+
+## Server Messages
+
+### Login
+
+Authenticate with the Soulseek server.
+
+```python
+from pynicotine.slskmessages import Login
+
+msg = Login(
+    username="myusername",
+    passwd="mypassword",
+    version=160,
+    minorversion=3
+)
+```
+
+<ParamField path="username" type="str">
+  Username for authentication
+</ParamField>
+
+<ParamField path="passwd" type="str">
+  Password for authentication
+</ParamField>
+
+<ParamField path="version" type="int">
+  Client version number
+</ParamField>
+
+<ParamField path="success" type="bool">
+  Whether login succeeded (received from server)
+</ParamField>
+
+<ParamField path="rejection_reason" type="str">
+  Reason for login failure if unsuccessful
+</ParamField>
+
+### WatchUser
+
+Subscribe to status updates for a user.
+
+```python
+from pynicotine.slskmessages import WatchUser
+
+msg = WatchUser(user="username")
+```
+
+<ParamField path="user" type="str">
+  Username to watch
+</ParamField>
+
+<ResponseField name="userexists" type="bool">
+  Whether the user exists
+</ResponseField>
+
+<ResponseField name="status" type="int">
+  User status (0=offline, 1=away, 2=online)
+</ResponseField>
+
+<ResponseField name="avgspeed" type="int">
+  Average upload speed
+</ResponseField>
+
+<ResponseField name="files" type="int">
+  Number of shared files
+</ResponseField>
+
+<ResponseField name="dirs" type="int">
+  Number of shared directories
+</ResponseField>
+
+### FileSearch
+
+Initiate a global file search.
+
+```python
+from pynicotine.slskmessages import FileSearch
+
+msg = FileSearch(token=12345, text="music artist album")
+```
+
+<ParamField path="token" type="int">
+  Unique search token for tracking results
+</ParamField>
+
+<ParamField path="text" type="str">
+  Search query
+</ParamField>
+
+### JoinRoom
+
+Join a chat room.
+
+```python
+from pynicotine.slskmessages import JoinRoom
+
+msg = JoinRoom(room="music", private=False)
+```
+
+<ParamField path="room" type="str">
+  Name of the room to join
+</ParamField>
+
+<ParamField path="private" type="bool">
+  Whether the room is private
+</ParamField>
+
+<ResponseField name="users" type="list">
+  List of UserData objects for room members
+</ResponseField>
+
+<ResponseField name="owner" type="str">
+  Room owner (for private rooms)
+</ResponseField>
+
+<ResponseField name="operators" type="list">
+  List of room operators (for private rooms)
+</ResponseField>
+
+## Peer Messages
+
+### SharedFileListRequest
+
+Request a peer's shared file list.
+
+```python
+from pynicotine.slskmessages import SharedFileListRequest
+
+msg = SharedFileListRequest()
+```
+
+### FileSearchResponse
+
+Respond to a search request with matching files.
+
+```python
+from pynicotine.slskmessages import FileSearchResponse
+
+msg = FileSearchResponse(
+    search_username="myusername",
+    token=12345,
+    shares=file_list,
+    freeulslots=True,
+    ulspeed=1000,
+    inqueue=0
+)
+```
+
+<ParamField path="search_username" type="str">
+  Username sending the results
+</ParamField>
+
+<ParamField path="token" type="int">
+  Search token from the request
+</ParamField>
+
+<ParamField path="shares" type="list">
+  List of matching files with metadata
+</ParamField>
+
+<ParamField path="freeulslots" type="bool">
+  Whether upload slots are available
+</ParamField>
+
+<ParamField path="ulspeed" type="int">
+  Average upload speed
+</ParamField>
+
+<ParamField path="inqueue" type="int">
+  Number of files queued for this user
+</ParamField>
+
+### TransferRequest
+
+Request to initiate a file transfer.
+
+```python
+from pynicotine.slskmessages import TransferRequest, TransferDirection
+
+msg = TransferRequest(
+    direction=TransferDirection.UPLOAD,
+    token=67890,
+    file="folder\\filename.mp3",
+    filesize=1234567
+)
+```
+
+<ParamField path="direction" type="int">
+  0 for download, 1 for upload
+</ParamField>
+
+<ParamField path="token" type="int">
+  Unique transfer token
+</ParamField>
+
+<ParamField path="file" type="str">
+  Virtual file path
+</ParamField>
+
+<ParamField path="filesize" type="int">
+  Size of file in bytes
+</ParamField>
+
+### QueueUpload
+
+Queue a file for upload.
+
+```python
+from pynicotine.slskmessages import QueueUpload
+
+msg = QueueUpload(file="folder\\filename.mp3")
+```
+
+<ParamField path="file" type="str">
+  Virtual file path to queue
+</ParamField>
+
+## Utility Functions
+
+### initial_token()
+
+```python
+def initial_token()
+```
+
+Generates a random initial token for searches and transfers.
+
+<ResponseField name="token" type="int">
+  Random token value
+</ResponseField>
+
+### increment_token()
+
+```python
+def increment_token(token)
+```
+
+Increments a token, wrapping at UINT32 limit.
+
+<ParamField path="token" type="int">
+  Current token value
+</ParamField>
+
+<ResponseField name="new_token" type="int">
+  Incremented token value
+</ResponseField>
+
+<CodeGroup>
+```python Example: Token Management
+from pynicotine.slskmessages import initial_token, increment_token
+
+# Generate initial token
+token = initial_token()
+print(f"Initial token: {token}")
+
+# Increment for each new search
+token = increment_token(token)
+print(f"Next token: {token}")
+```
+</CodeGroup>
+
+## File Attributes
+
+The `FileAttributes` class stores audio file metadata.
+
+<ParamField path="bitrate" type="int">
+  Audio bitrate in kbps
+</ParamField>
+
+<ParamField path="length" type="int">
+  Duration in seconds
+</ParamField>
+
+<ParamField path="vbr" type="int">
+  Variable bitrate flag (0 or 1)
+</ParamField>
+
+<ParamField path="sample_rate" type="int">
+  Sample rate in Hz
+</ParamField>
+
+<ParamField path="bit_depth" type="int">
+  Bit depth for lossless audio
+</ParamField>
+
+<CodeGroup>
+```python Example: File Attributes
+from pynicotine.slskmessages import FileAttributes
+
+attrs = FileAttributes(
+    bitrate=320,
+    length=245,
+    vbr=0,
+    sample_rate=44100
+)
+
+print(f"Bitrate: {attrs.bitrate} kbps")
+print(f"Duration: {attrs.length} seconds")
+```
+</CodeGroup>
+
+## Message Packing/Unpacking
+
+All message classes inherit from `SlskMessage` and implement:
+
+- `make_network_message()` - Serializes message to bytes
+- `parse_network_message()` - Deserializes bytes to message
+
+<Note>
+Messages use little-endian byte order and length-prefixed strings for network transmission.
+</Note>

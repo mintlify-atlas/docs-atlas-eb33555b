@@ -1,0 +1,629 @@
+---
+title: Plugin API Reference
+description: Complete reference for all plugin methods, events, notifications, and return codes
+---
+
+This reference documents all methods available in the Nicotine+ plugin API through the `BasePlugin` class.
+
+## Events vs Notifications
+
+There are two types of hooks available to plugins:
+
+<CardGroup cols={2}>
+  <Card title="Events" icon="bolt">
+    **Can modify data** before Nicotine+ processes it. Time-critical - must execute quickly to avoid freezing the UI. Return modified arguments or return codes to control flow.
+  </Card>
+  <Card title="Notifications" icon="bell">
+    **Cannot modify data**. Receive information about what happened. Can take as long as needed without blocking the UI. Preferred for most use cases.
+  </Card>
+</CardGroup>
+
+<Warning>
+  Events are time-critical. Every millisecond spent in event handlers delays the UI. Only use events when you need to modify or block data - prefer notifications for everything else.
+</Warning>
+
+## Return Codes
+
+Event handlers can return special codes to control how Nicotine+ processes the event:
+
+```python
+from pynicotine.pluginsystem import returncode
+
+# Available return codes:
+returncode["break"]  # 0 - Don't give event to other plugins, DO let Nicotine+ process it
+returncode["zap"]    # 1 - Don't give event to other plugins, DON'T let Nicotine+ process it  
+returncode["pass"]   # 2 - DO give event to other plugins, DO let Nicotine+ process it
+# Returning None or nothing is the same as "pass"
+```
+
+### Example Usage
+
+```python
+def incoming_public_chat_event(self, room, user, line):
+    # Modify the message
+    if "spam" in line.lower():
+        return returncode["zap"]  # Block this message entirely
+    
+    # Modify and pass through
+    modified_line = line.replace("bad", "***")
+    return room, user, modified_line  # Return modified args
+```
+
+## Chat Events
+
+### Incoming Chat
+
+<ParamField path="incoming_public_chat_event" type="method">
+  ```python
+  def incoming_public_chat_event(self, room, user, line):
+      """Modify incoming chat room message before processing.
+      
+      Args:
+          room (str): Chat room name
+          user (str): Username who sent the message  
+          line (str): Message text
+      
+      Returns:
+          tuple: Modified (room, user, line) or return code
+      """
+      return room, user, line.upper()  # Convert to uppercase
+  ```
+  
+  **Use case**: Filter spam, modify message display, implement custom formatting
+</ParamField>
+
+<ParamField path="incoming_public_chat_notification" type="method">
+  ```python
+  def incoming_public_chat_notification(self, room, user, line):
+      """Notification of incoming chat room message.
+      
+      Args:
+          room (str): Chat room name
+          user (str): Username who sent the message
+          line (str): Message text
+      """
+      self.log(f"{user} said in {room}: {line}")
+  ```
+  
+  **Use case**: Log messages, trigger actions based on chat content
+</ParamField>
+
+<ParamField path="incoming_private_chat_event" type="method">
+  ```python
+  def incoming_private_chat_event(self, user, line):
+      """Modify incoming private message before processing.
+      
+      Args:
+          user (str): Username who sent the message
+          line (str): Message text
+      
+      Returns:
+          tuple: Modified (user, line) or return code
+      """
+      return user, line
+  ```
+  
+  **Use case**: Filter private messages, auto-respond to queries
+</ParamField>
+
+<ParamField path="incoming_private_chat_notification" type="method">
+  ```python
+  def incoming_private_chat_notification(self, user, line):
+      """Notification of incoming private message.
+      
+      Args:
+          user (str): Username who sent the message
+          line (str): Message text
+      """
+      pass
+  ```
+</ParamField>
+
+### Outgoing Chat
+
+<ParamField path="outgoing_public_chat_event" type="method">
+  ```python
+  def outgoing_public_chat_event(self, room, line):
+      """Modify outgoing chat room message before sending.
+      
+      Args:
+          room (str): Chat room name
+          line (str): Message text to send
+      
+      Returns:
+          tuple: Modified (room, line) or return code
+      """
+      return room, line
+  ```
+  
+  **Use case**: Add signatures, replace emoticons, implement shortcuts
+</ParamField>
+
+<ParamField path="outgoing_public_chat_notification" type="method">
+  ```python
+  def outgoing_public_chat_notification(self, room, line):
+      """Notification of outgoing chat room message.
+      
+      Args:
+          room (str): Chat room name
+          line (str): Message text sent
+      """
+      pass
+  ```
+</ParamField>
+
+<ParamField path="outgoing_private_chat_event" type="method">
+  ```python
+  def outgoing_private_chat_event(self, user, line):
+      """Modify outgoing private message before sending.
+      
+      Args:
+          user (str): Recipient username
+          line (str): Message text to send
+      
+      Returns:
+          tuple: Modified (user, line) or return code
+      """
+      return user, line
+  ```
+</ParamField>
+
+<ParamField path="outgoing_private_chat_notification" type="method">
+  ```python
+  def outgoing_private_chat_notification(self, user, line):
+      """Notification of outgoing private message.
+      
+      Args:
+          user (str): Recipient username
+          line (str): Message text sent
+      """
+      pass
+  ```
+</ParamField>
+
+## Room Events
+
+<ParamField path="join_chatroom_notification" type="method">
+  ```python
+  def join_chatroom_notification(self, room):
+      """You joined a chat room.
+      
+      Args:
+          room (str): Room name
+      """
+      self.log(f"Joined room: {room}")
+  ```
+</ParamField>
+
+<ParamField path="leave_chatroom_notification" type="method">
+  ```python
+  def leave_chatroom_notification(self, room):
+      """You left a chat room.
+      
+      Args:
+          room (str): Room name
+      """
+      pass
+  ```
+</ParamField>
+
+<ParamField path="user_join_chatroom_notification" type="method">
+  ```python
+  def user_join_chatroom_notification(self, room, user):
+      """Another user joined a chat room.
+      
+      Args:
+          room (str): Room name
+          user (str): Username who joined
+      """
+      pass
+  ```
+</ParamField>
+
+<ParamField path="user_leave_chatroom_notification" type="method">
+  ```python
+  def user_leave_chatroom_notification(self, room, user):
+      """Another user left a chat room.
+      
+      Args:
+          room (str): Room name
+          user (str): Username who left
+      """
+      pass
+  ```
+</ParamField>
+
+<ParamField path="public_room_message_notification" type="method">
+  ```python
+  def public_room_message_notification(self, room, user, line):
+      """Public room message received (after processing).
+      
+      Args:
+          room (str): Room name
+          user (str): Username
+          line (str): Message text
+      """
+      pass
+  ```
+</ParamField>
+
+## Private Room Events
+
+<ParamField path="private_room_membership_granted_notification" type="method">
+  ```python
+  def private_room_membership_granted_notification(self, room):
+      """You were granted membership to a private room.
+      
+      Args:
+          room (str): Private room name
+      """
+      pass
+  ```
+</ParamField>
+
+<ParamField path="private_room_membership_revoked_notification" type="method">
+  ```python
+  def private_room_membership_revoked_notification(self, room):
+      """Your membership to a private room was revoked.
+      
+      Args:
+          room (str): Private room name
+      """
+      pass
+  ```
+</ParamField>
+
+<ParamField path="private_room_member_added_notification" type="method">
+  ```python
+  def private_room_member_added_notification(self, room, user):
+      """User was added as member to a private room.
+      
+      Args:
+          room (str): Private room name
+          user (str): Username added
+      """
+      # Example: Auto-add room members as buddies
+      if user != self.core.users.login_username:
+          self.core.buddies.add_buddy(user)
+  ```
+</ParamField>
+
+<ParamField path="private_room_member_removed_notification" type="method">
+  ```python
+  def private_room_member_removed_notification(self, room, user):
+      """User was removed from private room membership.
+      
+      Args:
+          room (str): Private room name
+          user (str): Username removed
+      """
+      pass
+  ```
+</ParamField>
+
+<ParamField path="private_room_operatorship_granted_notification" type="method">
+  ```python
+  def private_room_operatorship_granted_notification(self, room):
+      """You were granted operator status in a private room.
+      
+      Args:
+          room (str): Private room name
+      """
+      pass
+  ```
+</ParamField>
+
+<ParamField path="private_room_operatorship_revoked_notification" type="method">
+  ```python
+  def private_room_operatorship_revoked_notification(self, room):
+      """Your operator status was revoked in a private room.
+      
+      Args:
+          room (str): Private room name
+      """
+      pass
+  ```
+</ParamField>
+
+<ParamField path="private_room_operator_added_notification" type="method">
+  ```python
+  def private_room_operator_added_notification(self, room, user):
+      """User was granted operator status in a private room.
+      
+      Args:
+          room (str): Private room name
+          user (str): Username granted operator
+      """
+      pass
+  ```
+</ParamField>
+
+<ParamField path="private_room_operator_removed_notification" type="method">
+  ```python
+  def private_room_operator_removed_notification(self, room, user):
+      """User's operator status was revoked in a private room.
+      
+      Args:
+          room (str): Private room name
+          user (str): Username with revoked operator
+      """
+      pass
+  ```
+</ParamField>
+
+## Search Events
+
+<ParamField path="search_request_notification" type="method">
+  ```python
+  def search_request_notification(self, searchterm, user, token):
+      """Someone searched for files you're sharing.
+      
+      Args:
+          searchterm (str): Search query
+          user (str): Username who searched
+          token (int): Search token
+      """
+      self.log(f"{user} searched for: {searchterm}")
+  ```
+  
+  **Use case**: Track popular searches, identify potential leechers
+</ParamField>
+
+<ParamField path="distrib_search_notification" type="method">
+  ```python
+  def distrib_search_notification(self, searchterm, user, token):
+      """Distributed search request (you're a parent to the searcher).
+      
+      Args:
+          searchterm (str): Search query
+          user (str): Username who searched
+          token (int): Search token
+      """
+      pass
+  ```
+</ParamField>
+
+<ParamField path="outgoing_global_search_event" type="method">
+  ```python
+  def outgoing_global_search_event(self, text):
+      """Modify global search query before sending.
+      
+      Args:
+          text (str): Search text
+      
+      Returns:
+          tuple: Modified (text,) or return code
+      """
+      return (text,)
+  ```
+</ParamField>
+
+<ParamField path="outgoing_room_search_event" type="method">
+  ```python
+  def outgoing_room_search_event(self, rooms, text):
+      """Modify room search before sending.
+      
+      Args:
+          rooms (list): List of room names to search
+          text (str): Search text
+      
+      Returns:
+          tuple: Modified (rooms, text) or return code
+      """
+      return rooms, text
+  ```
+</ParamField>
+
+<ParamField path="outgoing_buddy_search_event" type="method">
+  ```python
+  def outgoing_buddy_search_event(self, text):
+      """Modify buddy search before sending.
+      
+      Args:
+          text (str): Search text
+      
+      Returns:
+          tuple: Modified (text,) or return code
+      """
+      return (text,)
+  ```
+</ParamField>
+
+<ParamField path="outgoing_user_search_event" type="method">
+  ```python
+  def outgoing_user_search_event(self, users, text):
+      """Modify user search before sending.
+      
+      Args:
+          users (list): List of usernames to search
+          text (str): Search text
+      
+      Returns:
+          tuple: Modified (users, text) or return code
+      """
+      return users, text
+  ```
+</ParamField>
+
+<ParamField path="outgoing_wishlist_search_event" type="method">
+  ```python
+  def outgoing_wishlist_search_event(self, text):
+      """Modify wishlist search before sending.
+      
+      Args:
+          text (str): Search text
+      
+      Returns:
+          tuple: Modified (text,) or return code
+      """
+      return (text,)
+  ```
+</ParamField>
+
+## Transfer Events
+
+<ParamField path="upload_queued_notification" type="method">
+  ```python
+  def upload_queued_notification(self, user, virtual_path, real_path):
+      """Upload was queued.
+      
+      Args:
+          user (str): Username requesting upload
+          virtual_path (str): Virtual file path seen by user
+          real_path (str): Real file path on disk
+      """
+      pass
+  ```
+</ParamField>
+
+<ParamField path="upload_started_notification" type="method">
+  ```python
+  def upload_started_notification(self, user, virtual_path, real_path):
+      """Upload started.
+      
+      Args:
+          user (str): Username receiving upload
+          virtual_path (str): Virtual file path
+          real_path (str): Real file path
+      """
+      self.log(f"Uploading to {user}: {virtual_path}")
+  ```
+</ParamField>
+
+<ParamField path="upload_finished_notification" type="method">
+  ```python
+  def upload_finished_notification(self, user, virtual_path, real_path):
+      """Upload completed.
+      
+      Args:
+          user (str): Username who received upload
+          virtual_path (str): Virtual file path
+          real_path (str): Real file path
+      """
+      pass
+  ```
+</ParamField>
+
+<ParamField path="download_started_notification" type="method">
+  ```python
+  def download_started_notification(self, user, virtual_path, real_path):
+      """Download started.
+      
+      Args:
+          user (str): Username uploading to you
+          virtual_path (str): Virtual file path
+          real_path (str): Real file path where saving
+      """
+      pass
+  ```
+</ParamField>
+
+<ParamField path="download_finished_notification" type="method">
+  ```python
+  def download_finished_notification(self, user, virtual_path, real_path):
+      """Download completed.
+      
+      Args:
+          user (str): Username who uploaded
+          virtual_path (str): Virtual file path
+          real_path (str): Real file path
+      """
+      self.log(f"Downloaded from {user}: {real_path}")
+  ```
+</ParamField>
+
+## Server & User Events
+
+<ParamField path="server_connect_notification" type="method">
+  ```python
+  def server_connect_notification(self):
+      """Connected to Soulseek server."""
+      self.log("Connected to server")
+  ```
+</ParamField>
+
+<ParamField path="server_disconnect_notification" type="method">
+  ```python
+  def server_disconnect_notification(self, userchoice):
+      """Disconnected from Soulseek server.
+      
+      Args:
+          userchoice (bool): True if user initiated disconnect
+      """
+      if not userchoice:
+          self.log("Connection lost!")
+  ```
+</ParamField>
+
+<ParamField path="user_resolve_notification" type="method">
+  ```python
+  def user_resolve_notification(self, user, ip_address, port, country):
+      """User IP address and port were resolved.
+      
+      Args:
+          user (str): Username
+          ip_address (str): IP address
+          port (int): Port number
+          country (str): Country code (only set when user requested resolving)
+      """
+      self.log(f"{user} is at {ip_address}:{port} ({country})")
+  ```
+</ParamField>
+
+<ParamField path="user_stats_notification" type="method">
+  ```python
+  def user_stats_notification(self, user, stats):
+      """User statistics received.
+      
+      Args:
+          user (str): Username
+          stats (dict): Statistics dictionary
+      """
+      pass
+  ```
+</ParamField>
+
+<ParamField path="user_status_notification" type="method">
+  ```python
+  def user_status_notification(self, user, status, privileged):
+      """User status changed.
+      
+      Args:
+          user (str): Username
+          status (int): Status code (UserStatus enum)
+          privileged (bool): Whether user has privileges
+      """
+      pass
+  ```
+</ParamField>
+
+## ResponseThrottle Helper
+
+The `ResponseThrottle` class helps avoid chat flooding when responding to user requests:
+
+```python
+from pynicotine.pluginsystem import BasePlugin, ResponseThrottle
+
+class Plugin(BasePlugin):
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.throttle = ResponseThrottle(self.core, self.human_name, logging=True)
+    
+    def incoming_public_chat_event(self, room, user, line):
+        if line.lower() == "!info":
+            # Check if it's okay to respond (prevents spam/ban)
+            if self.throttle.ok_to_respond(room, user, line, seconds_limit_min=30):
+                self.throttle.responded()  # Mark that we responded
+                self.send_public(room, "Here's the info you requested...")
+```
+
+<Note>
+  The Soulseek server can temporarily ban you from chat rooms if you send messages too quickly. Always use `ResponseThrottle` when building auto-responder plugins.
+</Note>
+
+## Next Steps
+
+<Card title="Plugin Examples" icon="code" href="/development/plugins/examples">
+  See real-world implementations using these APIs
+</Card>

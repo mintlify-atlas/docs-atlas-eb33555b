@@ -1,0 +1,280 @@
+---
+title: Getting Started with Plugin Development
+description: Learn how to create your first Nicotine+ plugin and understand the plugin system architecture
+---
+
+Nicotine+ features a powerful plugin system that allows you to extend functionality through Python code. Plugins can respond to events, modify chat messages, add custom commands, and integrate with external services.
+
+## Plugin Structure
+
+Every Nicotine+ plugin consists of two required files in a dedicated folder:
+
+<Steps>
+  <Step title="Create Plugin Folder">
+    Create a new folder for your plugin. The folder name becomes the plugin's internal name.
+    
+    ```bash
+    mkdir -p ~/.local/share/nicotine/plugins/my_plugin
+    ```
+  </Step>
+
+  <Step title="Create PLUGININFO File">
+    Add a `PLUGININFO` file with metadata about your plugin:
+    
+    ```python
+    # PLUGININFO
+    Version = "2024-01-01r00"
+    Authors = ["Your Name"]
+    Name = "My Plugin"
+    Description = "A brief description of what your plugin does."
+    ```
+    
+    <Note>
+      The `Name` field is the human-readable name shown in the UI, while the folder name is the technical identifier.
+    </Note>
+  </Step>
+
+  <Step title="Create __init__.py File">
+    Create an `__init__.py` file with your plugin class:
+    
+    ```python
+    from pynicotine.pluginsystem import BasePlugin
+
+    class Plugin(BasePlugin):
+        
+        def __init__(self, *args, **kwargs):
+            super().__init__(*args, **kwargs)
+        
+        def init(self):
+            # Called when plugin settings have loaded
+            self.log("Plugin initialized!")
+    ```
+  </Step>
+
+  <Step title="Install and Enable">
+    After creating your plugin files:
+    
+    1. Close and reopen the Preferences dialog if it's open
+    2. Go to Preferences → Plugins
+    3. Find your plugin in the list and enable it
+    
+    <Note>
+      There's no need to restart Nicotine+ when installing or updating plugins.
+    </Note>
+  </Step>
+</Steps>
+
+## Plugin Lifecycle
+
+Understanding the plugin lifecycle is crucial for proper initialization and cleanup:
+
+### Initialization Sequence
+
+```python
+class Plugin(BasePlugin):
+    
+    def __init__(self, *args, **kwargs):
+        """Plugin class is initializing.
+        
+        Settings are NOT available yet. Use this to define settings
+        structure and initialize instance variables.
+        """
+        super().__init__(*args, **kwargs)
+        
+        # Define plugin settings
+        self.settings = {
+            "enabled": True,
+            "message": "Hello World"
+        }
+    
+    def init(self):
+        """Called after __init__() when settings have loaded.
+        
+        Settings ARE available. Use this for initialization logic
+        that depends on settings values.
+        """
+        if self.settings["enabled"]:
+            self.log("Plugin is enabled!")
+    
+    def loaded_notification(self):
+        """Plugin has finished loading and commands are registered.
+        
+        Use this if you need to perform actions after the plugin
+        is fully loaded and ready.
+        """
+        pass
+```
+
+### Shutdown Sequence
+
+```python
+def disable(self):
+    """Plugin has started unloading.
+    
+    Clean up resources, cancel timers, close connections.
+    """
+    self.log("Plugin is shutting down")
+
+def unloaded_notification(self):
+    """Plugin has finished unloading.
+    
+    Final cleanup tasks.
+    """
+    pass
+
+def shutdown_notification(self):
+    """Application is shutting down.
+    
+    Perform any necessary cleanup before Nicotine+ exits.
+    """
+    pass
+```
+
+## Available Attributes
+
+Your plugin class has access to several important attributes:
+
+<ParamField path="self.internal_name" type="string">
+  Technical plugin name based on the folder name. Read-only.
+</ParamField>
+
+<ParamField path="self.human_name" type="string">
+  Friendly plugin name from PLUGININFO. Read-only.
+</ParamField>
+
+<ParamField path="self.path" type="string">
+  Folder path where plugin files are stored. Read-only.
+</ParamField>
+
+<ParamField path="self.parent" type="PluginHandler">
+  Reference to the PluginHandler instance. Read-only.
+</ParamField>
+
+<ParamField path="self.config" type="Config">
+  Reference to global Config handler. Read-only.
+</ParamField>
+
+<ParamField path="self.core" type="Core">
+  Reference to Core instance for accessing users, rooms, searches, etc. Read-only.
+</ParamField>
+
+<ParamField path="self.settings" type="dict">
+  Dictionary of plugin settings. Define in `__init__()`, access in `init()` and later.
+</ParamField>
+
+<ParamField path="self.metasettings" type="dict">
+  Metadata describing how settings should be displayed in the UI.
+</ParamField>
+
+<ParamField path="self.commands" type="dict">
+  Dictionary of commands provided by this plugin.
+</ParamField>
+
+## Plugin Settings
+
+Plugins can define user-configurable settings that appear in the Preferences dialog:
+
+```python
+class Plugin(BasePlugin):
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        
+        # Define default settings
+        self.settings = {
+            "enabled": True,
+            "threshold": 0.6,
+            "replies": ["Response 1", "Response 2"],
+            "player": "Clementine"
+        }
+        
+        # Define how settings are displayed in UI
+        self.metasettings = {
+            "enabled": {
+                "description": "Enable this feature",
+                "type": "bool"
+            },
+            "threshold": {
+                "description": "Sensitivity threshold",
+                "type": "float",
+                "minimum": 0,
+                "maximum": 1,
+                "stepsize": 0.1
+            },
+            "replies": {
+                "description": "Automatic replies:",
+                "type": "list string"
+            },
+            "player": {
+                "description": "Choose an audio player",
+                "type": "dropdown",
+                "options": ("Exaile", "Audacious", "Clementine")
+            }
+        }
+```
+
+### Supported Setting Types
+
+- `bool` - Checkbox
+- `integer` - Integer spinner with optional min/max
+- `float` - Float spinner with optional min/max/stepsize
+- `string` - Text input
+- `list string` - List of strings
+- `radio` - Radio buttons with options tuple
+- `dropdown` - Dropdown menu with options tuple
+
+## Utility Methods
+
+The BasePlugin class provides several convenience methods:
+
+### Logging
+
+```python
+self.log("Something happened")  # Logs with plugin name prefix
+```
+
+### Sending Messages
+
+```python
+# Send to chat room (must be joined)
+self.send_public("room_name", "Hello everyone!")
+
+# Send private message
+self.send_private("username", "Hello!", show_ui=True, switch_page=True)
+
+# Send to command source (works in commands)
+self.send_message("This goes to wherever the command was run")
+```
+
+### Displaying Local Messages
+
+```python
+# Display message in room without sending to server
+self.echo_public("room_name", "Local message", message_type="local")
+
+# Display in private chat without sending
+self.echo_private("username", "Local message", message_type="local")
+
+# Display in command source
+self.echo_message("Status info", message_type="local")
+
+# Output command results (recommended for commands)
+self.output("Command executed successfully")
+```
+
+Message types: `action`, `remote`, `local`, `hilite`, `command`
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="API Reference" icon="book" href="/development/plugins/api-reference">
+    Explore all available events, notifications, and methods
+  </Card>
+  <Card title="Plugin Examples" icon="code" href="/development/plugins/examples">
+    Learn from real-world plugin implementations
+  </Card>
+</CardGroup>
+
+<Warning>
+  **Performance Note**: Event handlers (methods ending in `_event`) are time-critical and can freeze the UI if they take too long. Use notifications (`_notification`) whenever possible, as they don't block the application.
+</Warning>

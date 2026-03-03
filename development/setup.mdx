@@ -1,0 +1,294 @@
+---
+title: Development Setup
+description: Set up your development environment and install dependencies for Nicotine+ development
+---
+
+This guide covers setting up a development environment for Nicotine+ on various platforms.
+
+## Dependencies
+
+### Runtime Dependencies
+
+<Note>
+All runtime dependencies must be installed before running Nicotine+ from source.
+</Note>
+
+#### Required
+
+- **python3** >= 3.9 - Runtime language
+- **gtk4** >= 4.6.9 or **gtk3** >= 3.24.24 - Graphical interface
+- **pygobject** - Python bindings for GTK
+
+#### Recommended
+
+- **libadwaita** - Adwaita theme on GNOME (GTK 4)
+- **gspell** - Spell checking in chat (GTK 3)
+
+### Build Dependencies
+
+- **python3-setuptools** - Build backend
+- **python3-build** - Building packages
+- **python3-wheel** - Packaging
+- **gettext** - Generating translations
+
+### Testing Dependencies
+
+- **pycodestyle** - Code style checks
+- **pylint** - Code linting
+
+## Installing Dependencies
+
+### GNU/Linux
+
+<Tabs>
+  <Tab title="Debian/Ubuntu">
+    <Steps>
+      <Step title="Install runtime dependencies">
+        ```sh
+        sudo apt install gir1.2-gspell-1 gir1.2-gtk-4.0 gir1.2-adw-1 python3-gi python3-gi-cairo
+        ```
+      </Step>
+      
+      <Step title="Install build dependencies">
+        ```sh
+        sudo apt install gettext python3-build python3-setuptools python3-wheel
+        ```
+      </Step>
+      
+      <Step title="Install test dependencies">
+        ```sh
+        sudo apt install pylint3 python3-pycodestyle
+        ```
+      </Step>
+    </Steps>
+  </Tab>
+  
+  <Tab title="Fedora/RHEL">
+    <Steps>
+      <Step title="Install runtime dependencies">
+        ```sh
+        sudo dnf install gspell gtk4 libadwaita python3-gobject
+        ```
+      </Step>
+      
+      <Step title="Install build dependencies">
+        ```sh
+        sudo dnf install gettext python3-build python3-setuptools python3-wheel
+        ```
+      </Step>
+      
+      <Step title="Install test dependencies">
+        ```sh
+        sudo dnf install pylint python3-pycodestyle
+        ```
+      </Step>
+    </Steps>
+  </Tab>
+  
+  <Tab title="SUSE">
+    <Steps>
+      <Step title="Install runtime dependencies">
+        ```sh
+        sudo zypper install typelib-1_0-Gspell-1 typelib-1_0-Gtk-4_0 typelib-1_0-Adw-1 python313-gobject python313-gobject-cairo python313-gobject-Gdk
+        ```
+      </Step>
+      
+      <Step title="Install build dependencies">
+        ```sh
+        sudo zypper install gettext-tools python313-build python313-setuptools python313-wheel
+        ```
+      </Step>
+      
+      <Step title="Install test dependencies">
+        ```sh
+        sudo zypper install python313-pylint python313-pycodestyle
+        ```
+      </Step>
+    </Steps>
+  </Tab>
+  
+  <Tab title="Alpine">
+    <Steps>
+      <Step title="Install runtime dependencies">
+        ```sh
+        sudo apk add gspell gtk4.0 libadwaita py3-gobject3
+        ```
+      </Step>
+      
+      <Step title="Install build dependencies">
+        ```sh
+        sudo apk add gettext py3-build py3-setuptools py3-wheel
+        ```
+      </Step>
+      
+      <Step title="Install test dependencies">
+        ```sh
+        sudo apk add py3-pylint py3-pycodestyle
+        ```
+      </Step>
+    </Steps>
+  </Tab>
+</Tabs>
+
+### Windows and macOS
+
+<Warning>
+All required dependencies are included in the official Windows and macOS installers. For building packages in a development environment, see the PACKAGING.md documentation.
+</Warning>
+
+## Development Installation
+
+### Option 1: Git (Recommended for Development)
+
+Run Nicotine+ directly from a local Git folder without installation:
+
+<Steps>
+  <Step title="Clone the repository">
+    ```sh
+    git clone https://github.com/nicotine-plus/nicotine-plus.git
+    cd nicotine-plus
+    ```
+  </Step>
+  
+  <Step title="Run Nicotine+">
+    ```sh
+    ./nicotine
+    ```
+  </Step>
+  
+  <Step title="Update to latest changes">
+    ```sh
+    git pull
+    ```
+  </Step>
+</Steps>
+
+<Tip>
+This method is ideal for development as you can easily modify code and test changes immediately.
+</Tip>
+
+### Option 2: pip Installation
+
+Install the latest unstable build using pip:
+
+<Steps>
+  <Step title="Install from Git">
+    ```sh
+    pip3 install git+https://github.com/nicotine-plus/nicotine-plus.git
+    ```
+  </Step>
+  
+  <Step title="Run Nicotine+">
+    ```sh
+    nicotine
+    ```
+  </Step>
+  
+  <Step title="Update to latest">
+    ```sh
+    pip3 install --upgrade git+https://github.com/nicotine-plus/nicotine-plus.git
+    ```
+  </Step>
+  
+  <Step title="Uninstall (if needed)">
+    ```sh
+    pip3 uninstall nicotine-plus
+    ```
+  </Step>
+</Steps>
+
+## Building from Source
+
+### Create a Source Distribution
+
+<Steps>
+  <Step title="Navigate to source directory">
+    ```sh
+    cd nicotine-plus
+    ```
+  </Step>
+  
+  <Step title="Build source distribution">
+    ```sh
+    python3 -m build --sdist
+    ```
+  </Step>
+  
+  <Step title="Verify output">
+    The source distribution will be created in the `dist/` directory.
+  </Step>
+</Steps>
+
+### Test the Build
+
+To test building the application:
+
+```sh
+python3 -m build
+```
+
+<Info>
+Ensure the source distribution (sdist) includes all necessary files to run Nicotine+ before creating a release.
+</Info>
+
+## Testing Unstable Builds
+
+For testing the latest unstable builds on various platforms:
+
+### GNU/Linux
+
+<Tabs>
+  <Tab title="PPA (Ubuntu/Debian)">
+    **Ubuntu and derivatives:**
+    ```sh
+    sudo add-apt-repository ppa:nicotine-team/unstable
+    sudo apt update && sudo apt install nicotine
+    ```
+    
+    **Debian and derivatives:**
+    ```sh
+    sudo apt update && sudo apt install python3-launchpadlib software-properties-common
+    sudo add-apt-repository 'deb https://ppa.launchpadcontent.net/nicotine-team/unstable/ubuntu jammy main'
+    sudo apt update && sudo apt install nicotine
+    ```
+  </Tab>
+  
+  <Tab title="Flatpak">
+    Download unstable Flatpak packages built after every commit to master:
+    
+    [Download Unstable Flatpak Package](https://nightly.link/nicotine-plus/nicotine-plus/workflows/packaging/master/flatpak-x86_64-package.zip)
+  </Tab>
+  
+  <Tab title="Snap">
+    ```sh
+    sudo snap install nicotine-plus --edge
+    ```
+  </Tab>
+</Tabs>
+
+### Windows
+
+Unstable installers are built after every commit:
+
+- [Windows x64 Installer](https://nightly.link/nicotine-plus/nicotine-plus/workflows/packaging/master/windows-x86_64-installer.zip) - Windows 10+
+- [Windows ARM64 Installer](https://nightly.link/nicotine-plus/nicotine-plus/workflows/packaging/master/windows-arm64-installer.zip) - Windows 11+
+
+Portable packages are also available that run from any folder without installation.
+
+### macOS
+
+Unstable installers are built after every commit:
+
+- [macOS Intel Installer](https://nightly.link/nicotine-plus/nicotine-plus/workflows/packaging/master/macos-x86_64-installer.zip) - macOS 15 Sequoia+
+- [macOS Apple Silicon Installer](https://nightly.link/nicotine-plus/nicotine-plus/workflows/packaging/master/macos-arm64-installer.zip) - macOS 15 Sequoia+
+
+<Warning>
+You must follow [Apple's instructions](https://support.apple.com/guide/mac-help/open-a-mac-app-from-an-unidentified-developer-mh40616/mac) the first time you start Nicotine+ from an unstable build.
+</Warning>
+
+## Next Steps
+
+Now that your development environment is set up:
+
+- Learn about the [Architecture](/development/architecture) of Nicotine+
+- Review [Testing](/development/testing) procedures and run the test suite

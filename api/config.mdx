@@ -1,0 +1,228 @@
+---
+title: Config Module
+description: Configuration management and storage for Nicotine+
+---
+
+The `config` module handles reading, writing, and managing application configuration.
+
+## Config Class
+
+Manages configuration information with file persistence.
+
+### Attributes
+
+<ParamField path="config_file_path" type="str">
+  Path to the configuration file
+</ParamField>
+
+<ParamField path="data_folder_path" type="str">
+  Path to the application data folder
+</ParamField>
+
+<ParamField path="sections" type="dict">
+  Two-level dictionary containing all configuration values. First-level keys are section names, second-level keys are parameter names.
+</ParamField>
+
+<ParamField path="defaults" type="dict">
+  Default configuration values
+</ParamField>
+
+### Methods
+
+#### get_user_folders()
+
+```python
+@staticmethod
+def get_user_folders()
+```
+
+Returns a tuple of (config_folder_path, data_folder_path).
+
+<ResponseField name="config_folder_path" type="str">
+  Path to configuration folder
+</ResponseField>
+
+<ResponseField name="data_folder_path" type="str">
+  Path to data folder
+</ResponseField>
+
+<CodeGroup>
+```python Example: Get User Folders
+from pynicotine.config import Config
+
+config_folder, data_folder = Config.get_user_folders()
+print(f"Config: {config_folder}")
+print(f"Data: {data_folder}")
+```
+</CodeGroup>
+
+#### load_config()
+
+```python
+def load_config(self, isolated_mode=False)
+```
+
+Loads configuration from file and applies defaults.
+
+<ParamField path="isolated_mode" type="bool" default={false}>
+  Whether to run in isolated mode
+</ParamField>
+
+#### need_config()
+
+```python
+def need_config(self)
+```
+
+Checks if username or password are missing from configuration.
+
+<ResponseField name="result" type="bool">
+  True if configuration is incomplete
+</ResponseField>
+
+#### write_configuration()
+
+```python
+def write_configuration(self)
+```
+
+Writes current configuration to file with automatic backup.
+
+<Note>
+Configuration is automatically backed up before writing. Legacy options are removed during the write process.
+</Note>
+
+#### write_config_backup()
+
+```python
+def write_config_backup(self, file_path)
+```
+
+Creates a compressed backup of the configuration file.
+
+<ParamField path="file_path" type="str">
+  Destination path for backup file (will append .tar.bz2 if not present)
+</ParamField>
+
+<CodeGroup>
+```python Example: Backup Configuration
+from pynicotine.config import config
+
+config.write_config_backup("/path/to/backup")
+```
+</CodeGroup>
+
+## Configuration Sections
+
+### Server Section
+
+Server connection and authentication settings.
+
+```python
+config.sections["server"]["server"]  # (hostname, port) tuple
+config.sections["server"]["login"]   # Username
+config.sections["server"]["passw"]   # Password
+config.sections["server"]["portrange"]  # (min_port, max_port) tuple
+```
+
+<Expandable title="Server Configuration Options">
+  <ParamField path="server" type="tuple">
+    Server address as (hostname, port)
+  </ParamField>
+  
+  <ParamField path="login" type="str">
+    Username for server authentication
+  </ParamField>
+  
+  <ParamField path="passw" type="str">
+    Password for server authentication
+  </ParamField>
+  
+  <ParamField path="portrange" type="tuple">
+    Listening port range as (min, max)
+  </ParamField>
+  
+  <ParamField path="auto_connect_startup" type="bool">
+    Automatically connect on startup
+  </ParamField>
+  
+  <ParamField path="upnp" type="bool">
+    Enable UPnP port mapping
+  </ParamField>
+</Expandable>
+
+### Transfers Section
+
+File transfer and sharing settings.
+
+```python
+config.sections["transfers"]["downloaddir"]  # Download directory
+config.sections["transfers"]["shared"]       # List of shared folders
+config.sections["transfers"]["uploadslots"]  # Number of upload slots
+```
+
+<Expandable title="Transfer Configuration Options">
+  <ParamField path="downloaddir" type="str">
+    Default download directory
+  </ParamField>
+  
+  <ParamField path="incompletedir" type="str">
+    Directory for incomplete downloads
+  </ParamField>
+  
+  <ParamField path="shared" type="list">
+    List of (virtual_name, folder_path) tuples for public shares
+  </ParamField>
+  
+  <ParamField path="buddyshared" type="list">
+    List of buddy-only shares
+  </ParamField>
+  
+  <ParamField path="uploadslots" type="int">
+    Number of upload slots
+  </ParamField>
+  
+  <ParamField path="uploadlimit" type="int">
+    Upload speed limit in KB/s
+  </ParamField>
+  
+  <ParamField path="downloadlimit" type="int">
+    Download speed limit in KB/s
+  </ParamField>
+</Expandable>
+
+### Searches Section
+
+Search-related settings.
+
+```python
+config.sections["searches"]["maxresults"]  # Maximum search results
+config.sections["searches"]["history"]     # Search history
+```
+
+<CodeGroup>
+```python Example: Access Configuration
+from pynicotine.config import config
+
+# Load configuration
+config.load_config()
+
+# Read values
+username = config.sections["server"]["login"]
+download_dir = config.sections["transfers"]["downloaddir"]
+
+# Modify values
+config.sections["transfers"]["uploadslots"] = 3
+
+# Save changes
+config.write_configuration()
+```
+</CodeGroup>
+
+## Global Instance
+
+```python
+from pynicotine.config import config
+```
+
+A global `config` instance is available for import.

@@ -1,0 +1,437 @@
+---
+title: General Settings
+description: Configure Nicotine+ preferences, user interface, logging, and behavior
+---
+
+Nicotine+ stores all configuration in a central config file. Settings can be modified through the GUI preferences window or by editing the config file directly.
+
+## Configuration File Location
+
+The configuration file location varies by platform:
+
+<Steps>
+  <Step title="Linux/Unix">
+    `~/.config/nicotine/config` (XDG standard)
+    
+    Or legacy location: `~/.nicotine/config`
+  </Step>
+  
+  <Step title="Windows">
+    `%APPDATA%\nicotine\config\config`
+    
+    Typically: `C:\Users\YourName\AppData\Roaming\nicotine\config\config`
+  </Step>
+  
+  <Step title="Portable Mode">
+    If a `portable` folder exists in the application directory:
+    
+    `portable/data/config/config`
+  </Step>
+</Steps>
+
+<Note>
+You can specify a custom config file using the `--config` CLI argument.
+</Note>
+
+## Command Line Arguments
+
+Override configuration settings from the command line:
+
+```bash
+# Use custom config file
+nicotine --config /path/to/config
+
+# Use alternative data folder
+nicotine --user-data /path/to/data
+
+# Start hidden in system tray
+nicotine --hidden
+
+# Bind to specific IP (useful for VPN)
+nicotine --bindip 10.8.0.1
+
+# Listen on specific port
+nicotine --port 2234
+
+# Rescan shared files
+nicotine --rescan
+
+# Run without GUI (headless mode)
+nicotine --headless
+```
+
+<Info>
+Use `nicotine --help` to see all available command line options.
+</Info>
+
+## User Interface Settings
+
+### Display & Theme
+
+<Accordion title="Dark Mode">
+  Enable dark mode for the application interface:
+  
+  ```python
+  [ui]
+  dark_mode = True
+  ```
+  
+  Default: `False`
+</Accordion>
+
+<Accordion title="Language">
+  Set the interface language (empty string uses system default):
+  
+  ```python
+  [ui]
+  language = "es"  # Spanish
+  ```
+  
+  Supported: en, de, es, fr, it, pl, ru, sv, and more
+</Accordion>
+
+<Accordion title="Header Bar">
+  Use client-side window decorations:
+  
+  ```python
+  [ui]
+  header_bar = True
+  ```
+  
+  Default: `True`
+</Accordion>
+
+### Window Behavior
+
+<Accordion title="Window Size & Position">
+  ```python
+  [ui]
+  width = 800
+  height = 600
+  xposition = -1  # -1 = centered
+  yposition = -1
+  maximized = True
+  ```
+</Accordion>
+
+<Accordion title="System Tray">
+  Show tray icon and start hidden:
+  
+  ```python
+  [ui]
+  trayicon = True
+  startup_hidden = False
+  ```
+</Accordion>
+
+<Accordion title="Exit Confirmation">
+  ```python
+  [ui]
+  exitdialog = 1  # 0=never, 1=on close, 2=always
+  ```
+</Accordion>
+
+### Appearance
+
+<Accordion title="Tab Position">
+  Configure tab placement for each section:
+  
+  ```python
+  [ui]
+  tabmain = "Top"      # Main tabs
+  tabrooms = "Top"     # Chat room tabs
+  tabprivate = "Top"   # Private chat tabs
+  tabsearch = "Top"    # Search tabs
+  ```
+  
+  Options: `"Top"`, `"Bottom"`, `"Left"`, `"Right"`
+</Accordion>
+
+<Accordion title="Fonts">
+  Customize fonts for different UI elements:
+  
+  ```python
+  [ui]
+  globalfont = ""          # Empty = system default
+  chatfont = "Monospace 10"
+  textviewfont = ""
+  searchfont = ""
+  listfont = ""
+  ```
+</Accordion>
+
+<Accordion title="Colors">
+  Customize chat and UI colors:
+  
+  ```python
+  [ui]
+  chatme = "#908E8B"         # Your messages
+  chatremote = ""            # Remote messages
+  chathilite = "#5288CE"     # Highlights
+  urlcolor = "#5288CE"       # URL links
+  useronline = "#16BB5C"     # Online status
+  useraway = "#C9AE13"       # Away status
+  useroffline = "#E04F5E"    # Offline status
+  ```
+</Accordion>
+
+## Server Settings
+
+### Connection
+
+```python
+[server]
+server = ["server.slsknet.org", 2242]
+login = "your_username"
+passw = "your_password"
+auto_connect_startup = True
+```
+
+<Warning>
+The password is stored in plain text in the config file. Ensure appropriate file permissions are set.
+</Warning>
+
+### Auto-Away
+
+```python
+[server]
+autoaway = 15  # Minutes of inactivity before auto-away (0 = disabled)
+away = False   # Current away status
+```
+
+### Chat Settings
+
+<Accordion title="Private Messages">
+  ```python
+  [server]
+  autoreply = ""  # Automatic reply when away
+  ```
+</Accordion>
+
+<Accordion title="Chat Rooms">
+  ```python
+  [server]
+  autojoin = ["nicotine+", "music"]  # Auto-join rooms
+  private_chatrooms = False          # Enable private rooms
+  ```
+</Accordion>
+
+### User Lists
+
+```python
+[server]
+userlist = []      # Buddy list
+banlist = []       # Banned users
+ignorelist = []    # Ignored users
+ipignorelist = {}  # Ignored IP addresses
+ipblocklist = {}   # Blocked IP addresses
+```
+
+## Logging Settings
+
+### Chat Logging
+
+<Steps>
+  <Step title="Enable Logging">
+    ```python
+    [logging]
+    privatechat = True  # Log private messages
+    chatrooms = True    # Log chat rooms
+    transfers = False   # Log transfers
+    ```
+  </Step>
+  
+  <Step title="Log Directories">
+    ```python
+    [logging]
+    privatelogsdir = "${NICOTINE_DATA_HOME}/logs/private"
+    roomlogsdir = "${NICOTINE_DATA_HOME}/logs/rooms"
+    transferslogsdir = "${NICOTINE_DATA_HOME}/logs/transfers"
+    ```
+  </Step>
+  
+  <Step title="Configure Timestamps">
+    ```python
+    [logging]
+    rooms_timestamp = "%X"       # Time only
+    private_timestamp = "%x %X"  # Date and time
+    log_timestamp = "%x %X"
+    ```
+  </Step>
+</Steps>
+
+<Info>
+Timestamp formats follow Python's strftime conventions: `%x` = date, `%X` = time
+</Info>
+
+### Debug Logging
+
+```python
+[logging]
+debug = False               # Enable debug output
+debugmodes = []             # Specific debug categories
+debug_file_output = False   # Write debug to file
+debuglogsdir = "${NICOTINE_DATA_HOME}/logs/debug"
+```
+
+<Warning>
+Debug mode significantly increases log verbosity. Only enable when troubleshooting.
+</Warning>
+
+### Log History
+
+```python
+[logging]
+readroomlines = 200      # Lines to read from room logs on startup
+readprivatelines = 200   # Lines to read from private logs
+logcollapsed = True      # Collapse old logs
+```
+
+## Search Settings
+
+### Search Behavior
+
+```python
+[searches]
+maxresults = 300              # Max results per search
+max_displayed_results = 2500  # Max results to display
+min_search_chars = 3          # Minimum query length
+enable_history = True         # Save search history
+private_search_results = False  # Allow private results
+```
+
+### Search Filters
+
+<Accordion title="Enable Filters">
+  ```python
+  [searches]
+  enablefilters = False
+  filters_visible = False
+  ```
+</Accordion>
+
+<Accordion title="Filter Configuration">
+  ```python
+  [searches]
+  filtercc = []      # Country code filter
+  filterin = []      # Include terms
+  filterout = []     # Exclude terms
+  filtersize = []    # Size range
+  filterbr = []      # Bitrate range
+  filtertype = []    # File type
+  filterlength = []  # Duration range
+  ```
+</Accordion>
+
+### Display Options
+
+```python
+[searches]
+expand_results = "all"  # "all", "none", or "user"
+group_searches = "folder_grouping"  # "ungrouped", "folder_grouping", "user_grouping"
+```
+
+## Notifications
+
+### Window Notifications
+
+```python
+[notifications]
+notification_window_title = True  # Flash window title
+notification_tab_colors = False   # Use tab colors
+```
+
+### Popup Notifications
+
+```python
+[notifications]
+notification_popup_sound = False              # Play sound
+notification_popup_file = True                # File completed
+notification_popup_folder = True              # Folder completed
+notification_popup_private_message = True     # Private message
+notification_popup_chatroom = False           # Chat room message
+notification_popup_chatroom_mention = True    # Room mention
+notification_popup_wish = True                # Wishlist match
+notification_popup_queued_upload = True       # Queued upload
+```
+
+## Word Processing
+
+### Auto-Replace
+
+<Accordion title="Enable Auto-Replace">
+  ```python
+  [words]
+  replacewords = False
+  autoreplaced = {
+      "teh ": "the ",
+      "youre": "you're",
+      "jsut": "just"
+  }
+  ```
+</Accordion>
+
+### Censorship
+
+<Accordion title="Censor Words">
+  ```python
+  [words]
+  censorwords = False
+  censored = ["badword1", "badword2"]
+  ```
+</Accordion>
+
+### Completion
+
+```python
+[words]
+tab = True         # Tab completion
+dropdown = False   # Show completion dropdown
+characters = 3     # Min characters for completion
+roomnames = False  # Complete room names
+buddies = True     # Complete buddy names
+roomusers = True   # Complete room user names
+commands = True    # Complete commands
+```
+
+## Plugins
+
+```python
+[plugins]
+enable = True      # Enable plugin system
+enabled = []       # List of enabled plugins
+```
+
+<Tip>
+Plugins extend Nicotine+ functionality. Enable only trusted plugins from the official repository.
+</Tip>
+
+## Statistics
+
+```python
+[statistics]
+since_timestamp = 0        # Stats start time
+started_downloads = 0
+completed_downloads = 0
+downloaded_size = 0        # Bytes
+started_uploads = 0
+completed_uploads = 0
+uploaded_size = 0          # Bytes
+```
+
+<Info>
+Statistics are automatically tracked and persist across sessions.
+</Info>
+
+## Config Backup
+
+Create a backup of your configuration:
+
+```python
+from pynicotine.config import config
+config.write_config_backup("/path/to/backup.tar.bz2")
+```
+
+<Note>
+Backups are stored as compressed tar archives (`.tar.bz2`) and include the config file.
+</Note>

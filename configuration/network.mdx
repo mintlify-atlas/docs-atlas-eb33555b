@@ -1,0 +1,498 @@
+---
+title: Network Configuration
+description: Configure network settings, ports, interfaces, UPnP, and connection behavior
+---
+
+Proper network configuration is essential for Nicotine+ to connect to the Soulseek network and accept incoming connections for file transfers.
+
+## Server Configuration
+
+### Server Address
+
+Connect to the official Soulseek server:
+
+```python
+[server]
+server = ["server.slsknet.org", 2242]
+```
+
+<Info>
+The server address is a tuple containing the hostname and port number.
+</Info>
+
+### Authentication
+
+```python
+[server]
+login = "your_username"
+passw = "your_password"
+```
+
+<Warning>
+Passwords are stored in plain text. Set restrictive file permissions on your config file:
+
+```bash
+chmod 600 ~/.config/nicotine/config
+```
+</Warning>
+
+### Auto-Connect
+
+```python
+[server]
+auto_connect_startup = True
+```
+
+When enabled, Nicotine+ automatically connects to the server on startup.
+
+## Port Configuration
+
+### Listening Port
+
+Nicotine+ requires an open TCP port for incoming connections:
+
+<Steps>
+  <Step title="Configure Port Range">
+    ```python
+    [server]
+    portrange = [2234, 2234]
+    ```
+    
+    Format: `[min_port, max_port]`
+    
+    Use the same value for both to bind to a specific port.
+  </Step>
+  
+  <Step title="Set via Command Line">
+    ```bash
+    nicotine --port 2234
+    ```
+    
+    Command line arguments override config settings.
+  </Step>
+  
+  <Step title="Verify Port is Open">
+    After connecting, check your port status in the GUI or visit:
+    
+    `https://www.slsknet.org/porttest.php?port=2234`
+  </Step>
+</Steps>
+
+<Note>
+If `portrange` contains different values, Nicotine+ will attempt to bind to a random port within the range.
+</Note>
+
+### Common Port Issues
+
+<Accordion title="Firewall Blocking">
+  Ensure your firewall allows incoming TCP connections:
+  
+  **Linux (ufw):**
+  ```bash
+  sudo ufw allow 2234/tcp
+  ```
+  
+  **Linux (iptables):**
+  ```bash
+  sudo iptables -A INPUT -p tcp --dport 2234 -j ACCEPT
+  ```
+  
+  **Windows:**
+  Add an inbound rule in Windows Defender Firewall for TCP port 2234.
+</Accordion>
+
+<Accordion title="Router NAT">
+  If behind a NAT router, you need either:
+  
+  1. **Automatic forwarding** using UPnP/NAT-PMP (recommended)
+  2. **Manual port forwarding** in your router settings
+  
+  Forward external port 2234 → your local IP:2234
+</Accordion>
+
+<Accordion title="Multiple Instances">
+  Running multiple instances requires different ports:
+  
+  ```bash
+  # Instance 1
+  nicotine --config ~/.config/nicotine/config1 --port 2234
+  
+  # Instance 2
+  nicotine --config ~/.config/nicotine/config2 --port 2235
+  ```
+</Accordion>
+
+## Network Interface Binding
+
+### Bind to Specific IP
+
+Useful for VPN connections or multi-homed systems:
+
+<Steps>
+  <Step title="Set Interface IP">
+    ```python
+    [server]
+    interface = "10.8.0.1"  # VPN interface IP
+    ```
+    
+    Leave empty (`""`) to bind to all interfaces.
+  </Step>
+  
+  <Step title="Override via CLI">
+    ```bash
+    nicotine --bindip 10.8.0.1
+    ```
+  </Step>
+  
+  <Step title="Verify Binding">
+    Check the debug log to confirm binding:
+    
+    ```
+    Binding socket to local IP address 10.8.0.1
+    ```
+  </Step>
+</Steps>
+
+<Info>
+When using a VPN, bind to the VPN interface IP to ensure all Nicotine+ traffic routes through the VPN.
+</Info>
+
+### Finding Your Interface IP
+
+**Linux:**
+```bash
+ip addr show
+# or
+ifconfig
+```
+
+**Windows:**
+```cmd
+ipconfig
+```
+
+Look for the IP address of your desired network interface (e.g., `tun0` for VPN, `eth0` for ethernet).
+
+## UPnP / NAT-PMP
+
+### Automatic Port Forwarding
+
+Nicotine+ supports automatic port forwarding using UPnP and NAT-PMP protocols:
+
+```python
+[server]
+upnp = True
+upnp_interval = 4  # Hours between renewal attempts
+```
+
+<Info>
+UPnP automatically configures your router to forward the listening port. This is the easiest way to accept incoming connections.
+</Info>
+
+### How It Works
+
+<Steps>
+  <Step title="Discovery">
+    Nicotine+ discovers UPnP/NAT-PMP capable routers on your network using multicast discovery.
+  </Step>
+  
+  <Step title="Port Mapping">
+    Creates a port mapping rule on your router:
+    
+    - External port: 2234 (configurable)
+    - Internal IP: Your local machine IP
+    - Internal port: 2234
+    - Protocol: TCP
+    - Lease duration: 12 hours
+  </Step>
+  
+  <Step title="Renewal">
+    Automatically renews the port mapping every 2 hours (before the 12-hour lease expires).
+  </Step>
+</Steps>
+
+### Protocol Priority
+
+1. **NAT-PMP** - Tried first (faster, simpler)
+2. **UPnP** - Fallback if NAT-PMP unavailable
+
+<Accordion title="NAT-PMP Details">
+  - Standard port: UDP 5351
+  - Request attempts: 2
+  - Timeout: 0.25 seconds initially, doubles on retry
+  - Discovers gateway via routing table
+  
+  ```python
+  # NAT-PMP requests sent to gateway
+  # Gateway address detected from /proc/net/route (Linux)
+  # or netstat -rn (BSD/macOS/Windows)
+  ```
+</Accordion>
+
+<Accordion title="UPnP Details">
+  - Discovery: SSDP multicast to 239.255.255.250:1900
+  - Supported services:
+    - `WANIPConnection:2` (preferred)
+    - `WANIPConnection:1`
+    - `WANPPPConnection:1`
+  - HTTP timeout: 5 seconds
+  - Multicast TTL: 2
+  
+  ```python
+  # User agent sent in UPnP requests:
+  # Python/3.x UPnP/2.0 Nicotine+/3.4.0
+  ```
+</Accordion>
+
+### Troubleshooting UPnP
+
+<Warning>
+If UPnP fails, check the debug log for detailed error messages.
+</Warning>
+
+**Common Issues:**
+
+<Accordion title="UPnP Disabled on Router">
+  Enable UPnP in your router's administration panel. Usually found under:
+  - Advanced Settings → UPnP
+  - NAT → UPnP
+  - Firewall → UPnP
+</Accordion>
+
+<Accordion title="Firewall Blocking Discovery">
+  Ensure your firewall allows:
+  - Outbound UDP to 239.255.255.250:1900
+  - Outbound TCP to router's control URL
+  
+  ```bash
+  # Linux: check if router responds
+  tcpdump -i any udp port 1900
+  ```
+</Accordion>
+
+<Accordion title="Multiple Routers / VPN">
+  When using a VPN, UPnP won't work with your local router. Options:
+  
+  1. Use VPN provider's port forwarding (if available)
+  2. Manual port forward on exit node
+  3. Accept limited connectivity
+</Accordion>
+
+<Accordion title="Router Compatibility">
+  Some routers only support permanent leases:
+  
+  ```
+  UPnP error code 725: OnlyPermanentLeasesSupported
+  ```
+  
+  Nicotine+ automatically retries with `lease_duration=0`.
+</Accordion>
+
+### Manual Port Forwarding
+
+If UPnP is unavailable:
+
+<Steps>
+  <Step title="Find Your Local IP">
+    ```bash
+    # Linux
+    ip addr show | grep "inet "
+    
+    # Windows
+    ipconfig | findstr IPv4
+    ```
+  </Step>
+  
+  <Step title="Access Router Admin">
+    Navigate to your router's IP (commonly 192.168.1.1 or 192.168.0.1) in a web browser.
+  </Step>
+  
+  <Step title="Create Port Forward">
+    Add a port forwarding rule:
+    - Protocol: TCP
+    - External Port: 2234
+    - Internal IP: Your local IP
+    - Internal Port: 2234
+    - Description: Nicotine+
+  </Step>
+  
+  <Step title="Disable UPnP in Nicotine+">
+    ```python
+    [server]
+    upnp = False
+    ```
+  </Step>
+</Steps>
+
+## Connection Testing
+
+### Port Checker
+
+Test if your port is accessible from the internet:
+
+```bash
+# Official Soulseek port checker
+curl "https://www.slsknet.org/porttest.php?port=2234"
+```
+
+Or visit in a browser:
+```
+https://www.slsknet.org/porttest.php?port=2234
+```
+
+<Info>
+The port checker URL is defined in `pynicotine/__init__.py`:
+
+```python
+__port_checker_url__ = "https://www.slsknet.org/porttest.php?port=%s"
+```
+</Info>
+
+### Debug Network Issues
+
+Enable debug logging to diagnose connection problems:
+
+```python
+[logging]
+debug = True
+debug_file_output = True
+```
+
+Check debug logs for:
+- `NAT-PMP: Portmap request attempt...`
+- `UPnP: SSDP request sent...`
+- `Binding socket to local IP address...`
+
+## Advanced Settings
+
+### CTCP Messages
+
+```python
+[server]
+ctcpmsgs = False
+```
+
+Enable Client-To-Client Protocol messages (rarely used).
+
+### IP Blocking
+
+<Accordion title="Block Specific IPs">
+  ```python
+  [server]
+  ipblocklist = {
+      "192.168.1.100": "Blocked reason",
+      "10.0.0.5": "Another reason"
+  }
+  ```
+</Accordion>
+
+<Accordion title="Ignore IPs">
+  ```python
+  [server]
+  ipignorelist = {
+      "203.0.113.0": "Ignored"
+  }
+  ```
+</Accordion>
+
+## Network Performance
+
+### Connection Limits
+
+While not directly configurable in network settings, connection behavior is influenced by:
+
+```python
+[transfers]
+uploadslots = 2           # Simultaneous upload connections
+queuelimit = 10000        # Max queued transfers
+filelimit = 100           # Max files per user
+```
+
+See [Downloads & Uploads](/features/downloads-uploads) for more details on managing transfers.
+
+### Bandwidth Management
+
+Configure upload/download speed limits:
+
+```python
+[transfers]
+use_upload_speed_limit = "unlimited"    # "unlimited", "primary", "alternative"
+uploadlimit = 1000                      # KB/s (primary limit)
+uploadlimitalt = 100                    # KB/s (alternative limit)
+
+use_download_speed_limit = "unlimited"
+downloadlimit = 1000                    # KB/s
+downloadlimitalt = 100                  # KB/s
+```
+
+<Tip>
+Use bandwidth limits to prevent Nicotine+ from saturating your connection.
+</Tip>
+
+## VPN Configuration Example
+
+Complete example for using Nicotine+ with a VPN:
+
+```python
+[server]
+interface = "10.8.0.1"  # VPN interface IP
+portrange = [2234, 2234]
+upnp = False            # VPN doesn't support UPnP
+```
+
+```bash
+# Start Nicotine+ bound to VPN
+nicotine --bindip 10.8.0.1
+```
+
+<Warning>
+Ensure your VPN provider supports port forwarding. Many VPNs do not allow incoming connections.
+</Warning>
+
+## Docker / Container Networking
+
+When running in containers:
+
+```python
+[server]
+interface = ""  # Bind to all interfaces
+portrange = [2234, 2234]
+upnp = False    # UPnP doesn't work in containers
+```
+
+Docker port mapping:
+```bash
+docker run -p 2234:2234/tcp nicotine
+```
+
+Manually forward port 2234 on your host to the container.
+
+## Network Configuration Validation
+
+Verify your configuration:
+
+<Steps>
+  <Step title="Check Config Values">
+    Ensure port range is valid:
+    ```python
+    # From config.py validation:
+    # portrange must be [int, int]
+    portrange = [2234, 2234]  # Valid
+    ```
+  </Step>
+  
+  <Step title="Connect to Server">
+    Successful connection confirms server settings are correct.
+  </Step>
+  
+  <Step title="Test Port Access">
+    Use the port checker to verify incoming connections work.
+  </Step>
+  
+  <Step title="Monitor Debug Log">
+    Enable debug logging and watch for network-related messages:
+    - Port binding confirmations
+    - UPnP/NAT-PMP status
+    - Connection attempts
+  </Step>
+</Steps>

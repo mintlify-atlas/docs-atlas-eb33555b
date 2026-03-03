@@ -1,0 +1,372 @@
+---
+title: Soulseek Protocol
+description: Technical overview of the Soulseek peer-to-peer protocol
+---
+
+The Soulseek protocol is a proprietary peer-to-peer protocol used for file sharing and chat. This page provides an overview of the protocol architecture and links to detailed technical documentation.
+
+## Protocol Overview
+
+Soulseek uses a hybrid peer-to-peer architecture:
+
+- **Central server** - Manages user authentication, searches, and peer discovery
+- **Peer connections** - Direct connections between users for file transfers
+- **Distributed network** - For distributing search queries efficiently
+
+<Info>
+The Soulseek server and client are proprietary software. The protocol has been documented through years of reverse engineering by the community.
+</Info>
+
+## Key Components
+
+### Server Messages
+
+Clients communicate with the Soulseek server over TCP connections. Server messages handle:
+
+- User login and authentication
+- Room management (joining, leaving, chat messages)
+- Search distribution
+- Peer address resolution
+- User statistics and status updates
+- Privilege management
+
+**Example server message codes:**
+- Code 1: Login
+- Code 13: Say in Chat Room
+- Code 14: Join Room
+- Code 26: File Search
+- Code 93: Embedded Message (distributed search)
+
+### Peer Messages
+
+Peer-to-peer connections are established between users for:
+
+- File transfers (uploads and downloads)
+- Share browsing
+- Search result delivery
+- Queue management
+- Direct messaging
+
+**Connection types:**
+- `P` - Peer to Peer (general communication)
+- `F` - File Transfer (actual file data)
+- `D` - Distributed Network (search distribution)
+
+### Distributed Network
+
+Soulseek uses a distributed search network to reduce server load:
+
+<Steps>
+  <Step title="Search initiated">
+    User sends search query to server or distributed parent.
+  </Step>
+  
+  <Step title="Distribution">
+    Query propagates through the distributed network tree structure.
+  </Step>
+  
+  <Step title="Results returned">
+    Users with matching files send results directly to the searcher.
+  </Step>
+</Steps>
+
+The distributed network uses a parent-child hierarchy:
+- **Branch roots** receive searches directly from the server
+- **Parents** distribute searches to children
+- **Children** search their shares and relay to their children
+
+<Note>
+Your position in the distributed network depends on your upload speed. Faster connections become parents or branch roots.
+</Note>
+
+## Message Format
+
+All Soulseek messages follow a consistent binary format:
+
+### Server Messages
+
+```
+| Message Length | Code   | Message Contents |
+|----------------|--------|------------------|
+| uint32         | uint32 | ...              |
+```
+
+### Data Types
+
+The protocol uses little-endian encoding for all multi-byte integers:
+
+- **uint8** - 8-bit unsigned integer (1 byte)
+- **uint16** - 16-bit unsigned integer (2 bytes, little-endian)
+- **uint32** - 32-bit unsigned integer (4 bytes, little-endian)
+- **uint64** - 64-bit unsigned integer (8 bytes, little-endian)
+- **bool** - 1 byte (0 or 1)
+- **string** - uint32 length + UTF-8 byte string
+- **bytes** - uint32 length + raw byte array
+
+### Example: Login Message
+
+A login message (server code 1) contains:
+
+```python
+# Message structure
+username: string        # Your username
+password: string        # Your password
+version: uint32         # Client version (160 for Nicotine+)
+hash: string            # MD5 hash of username + password
+minor_version: uint32   # Minor version number
+```
+
+## Protocol Features
+
+### File Attributes
+
+File search results include metadata attributes:
+
+- **0** - Bitrate (kbps)
+- **1** - Duration (seconds)
+- **2** - VBR flag (0 or 1)
+- **4** - Sample Rate (Hz)
+- **5** - Bit Depth (bits)
+
+<CodeGroup>
+```python Lossy Format Attributes
+{
+    0: 320,      # Bitrate: 320 kbps
+    1: 180,      # Duration: 3 minutes
+    2: 0         # VBR: false (CBR)
+}
+```
+
+```python Lossless Format Attributes
+{
+    1: 240,      # Duration: 4 minutes
+    4: 44100,    # Sample rate: 44.1 kHz
+    5: 16        # Bit depth: 16 bits
+}
+```
+</CodeGroup>
+
+### User Status Codes
+
+- `0` - Offline
+- `1` - Away
+- `2` - Online
+
+### Transfer States
+
+File transfers can be in various states with rejection reasons:
+
+**Active states:**
+- Queued
+- Transferring
+- Complete
+
+**Rejection reasons:**
+- `Banned` - User is banned
+- `Cancelled` - Transfer cancelled by user
+- `File not shared.` - File no longer available
+- `Too many files` - Upload limit reached
+- `Too many megabytes` - Bandwidth limit reached
+- `Queued` - Added to queue (not immediate)
+
+## Connection Process
+
+Establishing a peer connection involves multiple steps:
+
+<Steps>
+  <Step title="Request peer address">
+    Client sends `GetPeerAddress` message to server with target username.
+  </Step>
+  
+  <Step title="Receive peer info">
+    Server responds with peer's IP address and port.
+  </Step>
+  
+  <Step title="Attempt direct connection">
+    Client attempts to connect directly to peer.
+  </Step>
+  
+  <Step title="Fallback to indirect">
+    If direct connection fails, client sends `ConnectToPeer` message.
+    Server relays the connection request, and peer connects back.
+  </Step>
+  
+  <Step title="Pierce firewall">
+    Connection includes a `PierceFireWall` message with a unique token.
+  </Step>
+  
+  <Step title="Peer initialization">
+    After connection, peers exchange `PeerInit` messages.
+  </Step>
+</Steps>
+
+## Obfuscation
+
+Some clients (like SoulseekQt) support message obfuscation:
+
+- **Type 0** - No obfuscation (default)
+- **Type 1** - Rotated/obfuscated connection
+
+<Warning>
+Nicotine+ does not support obfuscated connections. Modern VPN usage has made protocol obfuscation less necessary, and it adds complexity while requiring multiple port forwards.
+</Warning>
+
+## Protocol Versions
+
+Nicotine+ identifies itself with:
+
+- **Version**: `160`
+- **Minor version**: `1`
+
+Other client versions:
+- SoulseekQt: `157`+ (various minor versions)
+- Soulseek NS: `143`-`157`
+- Museek+: `157`
+
+## Security Considerations
+
+<Warning>
+The Soulseek protocol has some security limitations:
+
+- Passwords are transmitted as MD5 hashes (not considered secure)
+- No end-to-end encryption of messages or transfers
+- IP addresses are visible to the server and peers
+- File metadata is publicly searchable
+</Warning>
+
+**Best practices:**
+
+1. **Use a VPN** - Hide your real IP address
+2. **Unique password** - Don't reuse passwords from other services
+3. **Bind to VPN** - Use `--bindip` to ensure traffic routes through VPN
+4. **Monitor shares** - Only share files you're comfortable being public
+
+```bash
+# Bind Nicotine+ to VPN interface
+nicotine --bindip 10.8.0.5
+```
+
+## Implementation in Nicotine+
+
+Nicotine+ implements the protocol in Python:
+
+- **`pynicotine/slskmessages.py`** - Message definitions and parsing
+- **`pynicotine/core.py`** - Core network handling
+- **`pynicotine/shares.py`** - File sharing and indexing
+- **`pynicotine/transfers.py`** - Upload/download management
+
+<Tip>
+If you're developing a Soulseek client or plugin, study the Nicotine+ source code for a complete Python implementation.
+</Tip>
+
+## Detailed Protocol Documentation
+
+For complete technical details about every message type, data structure, and protocol flow, see the comprehensive protocol documentation:
+
+<Card
+  title="SLSKPROTOCOL.md"
+  icon="file-code"
+  href="https://github.com/nicotine-plus/nicotine-plus/blob/master/doc/SLSKPROTOCOL.md"
+>
+  Complete Soulseek protocol documentation with all message codes, data formats, and examples.
+  
+  Last updated: February 28, 2026
+</Card>
+
+The documentation includes:
+
+- All server message codes (1-160, 1001, 1003)
+- Peer initialization messages
+- Peer-to-peer message codes
+- File transfer messages
+- Distributed network messages
+- Data packing formats
+- Constants and enumerations
+- Obsolete/deprecated messages
+
+## Alternative Implementations
+
+Several Soulseek implementations exist:
+
+- **Nicotine+** - Python (GTK or headless)
+- **SoulseekQt** - C++ (official client)
+- **Soulseek NS** - C++ (legacy official client)
+- **slskd** - C# (web-based daemon)
+- **Museek+** - C++ (defunct)
+- **SoulSeeX** - macOS client
+
+### Soulfind Server
+
+For running your own Soulseek server:
+
+<Card
+  title="Soulfind"
+  icon="server"
+  href="https://github.com/soulfind-dev/soulfind"
+>
+  Open-source Soulseek server implementation. While not identical to the official server, it handles the protocol well and can be modified.
+</Card>
+
+## Protocol Extensions
+
+<Warning>
+Do not extend the Soulseek protocol without approval from Soulseek administrators. 
+
+The network relies on compatibility between clients. Unauthorized extensions can:
+- Break compatibility with other clients
+- Cause server issues
+- Fragment the network
+</Warning>
+
+If you find protocol inconsistencies or errors, report them to the Nicotine+ team.
+
+## Learning More
+
+To understand the protocol in depth:
+
+1. **Read the full documentation** - [`SLSKPROTOCOL.md`](https://github.com/nicotine-plus/nicotine-plus/blob/master/doc/SLSKPROTOCOL.md)
+2. **Study the source** - Review `slskmessages.py` in Nicotine+
+3. **Monitor traffic** - Use Wireshark with the Soulseek dissector
+4. **Test with plugins** - Write plugins that interact with protocol events
+
+## Message Examples
+
+Here's how a file search works:
+
+<Steps>
+  <Step title="Client sends FileSearch (code 26)">
+    ```python
+    token: 12345                    # Random search token
+    query: "jazz piano"             # Search query
+    ```
+  </Step>
+  
+  <Step title="Server distributes to network">
+    Server sends EmbeddedMessage (code 93) to branch roots, who distribute to children.
+  </Step>
+  
+  <Step title="Peers send results">
+    Peers with matches establish a connection and send FileSearchResult messages.
+  </Step>
+  
+  <Step title="Client receives results">
+    Results appear in the search tab, sorted by various criteria.
+  </Step>
+</Steps>
+
+## Contributing
+
+If you discover protocol details or inconsistencies:
+
+1. Test your findings with multiple clients
+2. Document the behavior with examples
+3. Submit an issue or pull request to the Nicotine+ repository
+4. Update `SLSKPROTOCOL.md` with new information
+
+The protocol documentation is maintained by the community and improves through collaborative reverse engineering.
+
+## Next Steps
+
+- Explore [Plugins](/advanced/plugins) to interact with protocol events
+- Review [CLI options](/advanced/cli) for network binding
+- Read the full [SLSKPROTOCOL.md](https://github.com/nicotine-plus/nicotine-plus/blob/master/doc/SLSKPROTOCOL.md) documentation

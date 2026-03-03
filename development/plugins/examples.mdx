@@ -1,0 +1,507 @@
+---
+title: Plugin Examples
+description: Real-world plugin examples demonstrating common patterns and best practices
+---
+
+Learn from these practical plugin examples that demonstrate common use cases and implementation patterns.
+
+## Simple Chat Command
+
+This example shows how to create custom commands using the modern command system:
+
+```python
+# ~/.local/share/nicotine/plugins/hello_world/__init__.py
+from pynicotine.pluginsystem import BasePlugin
+
+class Plugin(BasePlugin):
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        
+        self.commands = {
+            "hello": {
+                "aliases": ["hi", "greet"],
+                "description": "Greet a user",
+                "parameters": ["[name]"],
+                "callback": self.hello_command
+            }
+        }
+    
+    def hello_command(self, args, **kwargs):
+        """Handle the /hello command."""
+        name = args.strip() if args else "World"
+        self.output(f"Hello, {name}!")
+        return True  # Indicate success
+```
+
+```python
+# PLUGININFO
+Version = "1.0.0"
+Authors = ["Your Name"]
+Name = "Hello World"
+Description = "Simple greeting command example."
+```
+
+<Note>
+  Commands automatically work in chat rooms, private chats, and CLI unless you use the `disable` parameter.
+</Note>
+
+## Advanced Command with Interface-Specific Behavior
+
+This example shows interface-specific parameters and callbacks:
+
+```python
+from pynicotine.pluginsystem import BasePlugin
+
+class Plugin(BasePlugin):
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        
+        self.commands = {
+            "sample": {
+                "aliases": ["demo"],
+                "description": "Sample command with interface variations",
+                "disable": ["cli"],  # Don't allow in CLI
+                "callback": self.sample_command,
+                "callback_chatroom": self.sample_chatroom_command,
+                "parameters": ["<choice1|choice2>", "<message..>"],
+                "parameters_chatroom": ["<room_choice1|room_choice2>"]
+            }
+        }
+    
+    def sample_command(self, args, user=None, **kwargs):
+        """Default handler for private chat."""
+        self.output(f"Private chat command: {args}")
+    
+    def sample_chatroom_command(self, args, room=None, **kwargs):
+        """Specific handler for chat rooms."""
+        self.output(f"Room command in {room}: {args}")
+```
+
+<CodeGroup>
+```python __init__.py
+from pynicotine.pluginsystem import BasePlugin
+
+class Plugin(BasePlugin):
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        
+        self.commands = {
+            "sample": {
+                "aliases": ["demo"],
+                "description": "Sample command description",
+                "disable": ["private_chat"],
+                "callback": self.sample_command,
+                "callback_private_chat": self.sample_command,
+                "parameters": ["<choice1|choice2>", "<something..>"],
+                "parameters_chatroom": ["<choice55|choice2>"]
+            }
+        }
+    
+    def sample_command(self, _args, **_unused):
+        self.output("Hello")
+```
+
+```text PLUGININFO
+Version = "2023-07-31r00"
+Authors = ["Nicotine+"]
+Name = "Sample Commands"
+Description = "Plugin to demonstrate the new plugin command system."
+```
+</CodeGroup>
+
+## Anti-Shout: Text Transformation Plugin
+
+Converts ALL CAPS messages to proper capitalization:
+
+```python
+# anti_shout/__init__.py
+from pynicotine.pluginsystem import BasePlugin
+
+class Plugin(BasePlugin):
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        
+        self.settings = {
+            "maxscore": 0.6,
+            "minlength": 10
+        }
+        self.metasettings = {
+            "maxscore": {
+                "description": "The maximum ratio of capitals before converting",
+                "type": "float",
+                "minimum": 0,
+                "maximum": 1,
+                "stepsize": 0.1
+            },
+            "minlength": {
+                "description": "Lines shorter than this will be ignored",
+                "type": "integer",
+                "minimum": 0
+            }
+        }
+    
+    @staticmethod
+    def capitalize(text):
+        # Don't alter protocol links (http://, ftp://)
+        if text.find("://") > -1:
+            return text
+        return text.capitalize()
+    
+    def incoming_private_chat_event(self, user, line):
+        return user, self.antishout(line)
+    
+    def incoming_public_chat_event(self, room, user, line):
+        return room, user, self.antishout(line)
+    
+    def antishout(self, line):
+        lowers = len([x for x in line if x.islower()])
+        uppers = len([x for x in line if x.isupper()])
+        score = -2  # Unknown state (no letters at all)
+        
+        if uppers > 0:
+            score = -1  # At least some upper letters
+        
+        if lowers > 0:
+            score = uppers / float(lowers)
+        
+        # Check if message exceeds thresholds
+        if (len(line) > self.settings["minlength"] and 
+            (score == -1 or score > self.settings["maxscore"])):
+            newline = ". ".join([self.capitalize(x) for x in line.split(". ")])
+            return newline + " [as]"  # Mark as anti-shouted
+        
+        return line
+```
+
+<Warning>
+  This plugin uses **events** to modify messages in real-time. Keep the logic fast to avoid UI freezing.
+</Warning>
+
+## Auto-Responder with Throttling
+
+Responds to trigger words while avoiding chat flood bans:
+
+```python
+# testreplier/__init__.py
+from random import choice
+from pynicotine.pluginsystem import BasePlugin, ResponseThrottle
+
+class Plugin(BasePlugin):
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        
+        self.settings = {
+            "replies": ["Test successful!", "Working!", "All systems go!"]
+        }
+        self.metasettings = {
+            "replies": {
+                "description": "Replies:",
+                "type": "list string"
+            }
+        }
+        
+        # Initialize throttle to prevent spam/ban
+        self.throttle = ResponseThrottle(
+            self.core, 
+            self.human_name,
+            logging=True  # Log rejected responses
+        )
+    
+    def incoming_public_chat_event(self, room, user, line):
+        # Only respond to "test" trigger
+        if line.lower() != "test":
+            return
+        
+        # Check if safe to respond (respects timing limits)
+        if self.throttle.ok_to_respond(room, user, line, seconds_limit_min=30):
+            self.throttle.responded()  # Record this response
+            
+            # Send random reply from settings
+            reply = choice(self.settings["replies"]).lstrip("!")
+            self.send_public(room, reply)
+```
+
+<Note>
+  `ResponseThrottle` prevents:
+  - Same user requesting same thing too quickly (12× limit)
+  - Different users requesting same thing too quickly (3× limit)  
+  - Responding in the same room too recently
+  - Responding in too many rooms simultaneously
+</Note>
+
+## Auto-Buddy Room Members
+
+Automatically adds private room members as buddies:
+
+```python
+# auto_buddy_rooms/__init__.py
+from pynicotine.pluginsystem import BasePlugin
+
+class Plugin(BasePlugin):
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        
+        self.settings = {
+            "watch_all_rooms": True,
+            "prioritize_buddies": False,
+            "rooms": []
+        }
+        self.metasettings = {
+            "watch_all_rooms": {
+                "description": "Watch every joined private room",
+                "type": "bool"
+            },
+            "prioritize_buddies": {
+                "description": "Give buddies priority status",
+                "type": "bool"
+            },
+            "rooms": {
+                "description": "Watched private rooms:",
+                "type": "list string"
+            }
+        }
+    
+    def private_room_member_added_notification(self, room, user):
+        # Don't add yourself
+        if user == self.core.users.login_username:
+            return
+        
+        # Check if we're watching this room
+        if not self.settings["watch_all_rooms"]:
+            if room not in self.settings["rooms"]:
+                return
+        
+        # Add as buddy
+        self.core.buddies.add_buddy(user)
+        
+        # Set note if buddy doesn't have one
+        if not self.core.buddies.users[user].note:
+            self.core.buddies.set_buddy_note(
+                user, 
+                f"Auto-Buddy member in private room {room}"
+            )
+        
+        # Optionally prioritize
+        if self.settings["prioritize_buddies"]:
+            self.core.buddies.set_buddy_prioritized(user, True)
+```
+
+<Steps>
+  <Step title="Enable the plugin">
+    Go to Preferences → Plugins and enable "Auto-Buddy Room Members"
+  </Step>
+  <Step title="Configure settings">
+    Choose whether to watch all rooms or specify specific rooms to monitor
+  </Step>
+  <Step title="Join private rooms">
+    When new members are added, they'll automatically become buddies
+  </Step>
+</Steps>
+
+## Dropdown/Radio Button Settings
+
+Demonstrates different setting UI types:
+
+```python
+from pynicotine.pluginsystem import BasePlugin
+
+class Plugin(BasePlugin):
+    """Radio Button/Dropdown Example."""
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        
+        self.settings = {
+            "player_radio": 2,                # ID (starts from 0)
+            "player_dropdown": "Clementine"   # String or ID
+        }
+        self.metasettings = {
+            "player_radio": {
+                "description": "Choose an audio player",
+                "type": "radio",
+                "options": (
+                    "Exaile",
+                    "Audacious",
+                    "Clementine"
+                )
+            },
+            "player_dropdown": {
+                "description": "Choose an audio player",
+                "type": "dropdown",
+                "options": (
+                    "Exaile",
+                    "Audacious",
+                    "Clementine"
+                )
+            }
+        }
+    
+    def init(self):
+        # Access the selected value
+        selected_radio = self.settings["player_radio"]  # Returns: 2
+        selected_dropdown = self.settings["player_dropdown"]  # Returns: "Clementine"
+```
+
+## Search Monitoring Plugin
+
+Log and respond to search requests:
+
+```python
+from pynicotine.pluginsystem import BasePlugin
+
+class Plugin(BasePlugin):
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        
+        self.settings = {
+            "log_searches": True,
+            "notify_popular": True,
+            "popular_threshold": 5
+        }
+        self.metasettings = {
+            "log_searches": {
+                "description": "Log all search requests",
+                "type": "bool"
+            },
+            "notify_popular": {
+                "description": "Notify when search term is popular",
+                "type": "bool"
+            },
+            "popular_threshold": {
+                "description": "Number of searches to be considered popular",
+                "type": "integer",
+                "minimum": 1
+            }
+        }
+        
+        self.search_counts = {}
+    
+    def search_request_notification(self, searchterm, user, token):
+        if self.settings["log_searches"]:
+            self.log(f"{user} searched for: {searchterm}")
+        
+        # Track popular searches
+        if self.settings["notify_popular"]:
+            self.search_counts[searchterm] = self.search_counts.get(searchterm, 0) + 1
+            
+            if self.search_counts[searchterm] == self.settings["popular_threshold"]:
+                self.log(f"Popular search detected: '{searchterm}' "
+                        f"({self.search_counts[searchterm]} requests)")
+```
+
+## Download/Upload Tracker
+
+Track transfer statistics:
+
+```python
+from pynicotine.pluginsystem import BasePlugin
+import time
+
+class Plugin(BasePlugin):
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        
+        self.transfers = {
+            "uploads": [],
+            "downloads": []
+        }
+    
+    def upload_started_notification(self, user, virtual_path, real_path):
+        self.transfers["uploads"].append({
+            "user": user,
+            "file": virtual_path,
+            "started": time.time()
+        })
+        self.log(f"Upload started: {virtual_path} to {user}")
+    
+    def upload_finished_notification(self, user, virtual_path, real_path):
+        # Find the matching upload
+        for upload in self.transfers["uploads"]:
+            if upload["file"] == virtual_path and upload["user"] == user:
+                duration = time.time() - upload["started"]
+                self.log(f"Upload completed in {duration:.1f}s: {virtual_path}")
+                break
+    
+    def download_finished_notification(self, user, virtual_path, real_path):
+        import os
+        file_size = os.path.getsize(real_path)
+        self.log(f"Downloaded {file_size / 1024 / 1024:.2f} MB from {user}")
+```
+
+## Connection Monitor
+
+Track server connection status:
+
+```python
+from pynicotine.pluginsystem import BasePlugin
+import time
+
+class Plugin(BasePlugin):
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.connect_time = None
+    
+    def server_connect_notification(self):
+        self.connect_time = time.time()
+        self.log("Connected to Soulseek server")
+    
+    def server_disconnect_notification(self, userchoice):
+        if self.connect_time:
+            uptime = time.time() - self.connect_time
+            hours = uptime / 3600
+            
+            reason = "User disconnected" if userchoice else "Connection lost"
+            self.log(f"{reason}. Uptime was {hours:.2f} hours")
+            
+            self.connect_time = None
+```
+
+## Best Practices
+
+<Steps>
+  <Step title="Prefer Notifications Over Events">
+    Use notifications (`_notification`) unless you need to modify data. Events can freeze the UI if slow.
+  </Step>
+  
+  <Step title="Use ResponseThrottle for Auto-Responders">
+    Always throttle automatic chat responses to avoid server bans.
+  </Step>
+  
+  <Step title="Provide User Settings">
+    Make plugins configurable through `settings` and `metasettings` dictionaries.
+  </Step>
+  
+  <Step title="Clean Up Resources">
+    Implement `disable()` to clean up timers, connections, and resources.
+  </Step>
+  
+  <Step title="Log Important Actions">
+    Use `self.log()` for debugging and user feedback.
+  </Step>
+</Steps>
+
+## Additional Resources
+
+<CardGroup cols={2}>
+  <Card title="Getting Started" icon="rocket" href="/development/plugins/getting-started">
+    Learn the basics of plugin development
+  </Card>
+  <Card title="API Reference" icon="book" href="/development/plugins/api-reference">
+    Complete method and event reference
+  </Card>
+  <Card title="Official Examples" icon="github" href="https://github.com/nicotine-plus/nicotine-plus/tree/HEAD/pynicotine/plugins/examplars">
+    Browse example plugins in the repository
+  </Card>
+  <Card title="Source Code" icon="code" href="https://github.com/nicotine-plus/nicotine-plus/blob/HEAD/pynicotine/pluginsystem.py">
+    View pluginsystem.py source code
+  </Card>
+</CardGroup>

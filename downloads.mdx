@@ -1,0 +1,269 @@
+---
+title: "Download Nicotine+"
+description: "Download the current stable version of Nicotine+ for your operating system"
+---
+
+<Note>
+  The current stable version is **Nicotine+ 3.3.10**, released on March 10, 2025. See the [release notes](https://github.com/nicotine-plus/nicotine-plus/blob/master/NEWS.md) for details.
+</Note>
+
+For the latest unstable builds and testing instructions, see the [testing documentation](https://github.com/nicotine-plus/nicotine-plus/blob/master/doc/TESTING.md).
+
+## Windows
+
+### Official Release
+
+Stable installers and standalone packages are available for Windows 10 or later.
+
+<CardGroup cols={2}>
+  <Card title="Windows Installer" icon="windows">
+    Recommended for most users
+    
+    - [Download Windows Installer](https://github.com/nicotine-plus/nicotine-plus/releases/latest/download/windows-x86_64-installer.zip) ([SHA256](https://github.com/nicotine-plus/nicotine-plus/releases/latest/download/windows-x86_64-installer.zip.sha256))
+    - For Windows 10 or later
+    - Includes automatic updates
+  </Card>
+  
+  <Card title="Standalone Package" icon="box">
+    No installation required
+    
+    - [Download Windows Standalone](https://github.com/nicotine-plus/nicotine-plus/releases/latest/download/windows-x86_64-package.zip) ([SHA256](https://github.com/nicotine-plus/nicotine-plus/releases/latest/download/windows-x86_64-package.zip.sha256))
+    - Run from any folder
+    - For Windows 10 or later
+  </Card>
+</CardGroup>
+
+<Warning>
+  **Upgrading from Nicotine+ 3.1.1 or earlier?** The installer format changed in version 3.2.0. Please uninstall the old version first (this will not remove your existing settings).
+</Warning>
+
+<Note>
+  Configuration files are stored in `C:\Users\<USERNAME>\AppData\Roaming\nicotine` for both installer and standalone versions.
+</Note>
+
+### Package Managers
+
+Alternatively, install using your preferred Windows package manager:
+
+| Package Manager | Installation Command |
+|----------------|---------------------|
+| **Chocolatey** | `choco install nicotine-plus` |
+| **Scoop** | `scoop install extras/nicotine-plus` |
+| **Winget** | `winget install nicotine+.nicotine+` |
+
+## macOS
+
+### Official Release
+
+<Warning>
+  **First-time users**: You must follow [these instructions](https://support.apple.com/guide/mac-help/open-a-mac-app-from-an-unidentified-developer-mh40616/mac) the first time you start Nicotine+.
+</Warning>
+
+<CardGroup cols={2}>
+  <Card title="macOS Intel" icon="apple">
+    For Intel-based Macs
+    
+    - [Download macOS Intel Installer](https://github.com/nicotine-plus/nicotine-plus/releases/latest/download/macos-x86_64-installer.zip) ([SHA256](https://github.com/nicotine-plus/nicotine-plus/releases/latest/download/macos-x86_64-installer.zip.sha256))
+    - For macOS 13 Ventura or later
+  </Card>
+  
+  <Card title="macOS Apple Silicon" icon="apple">
+    For M1/M2/M3 Macs
+    
+    - [Download macOS Apple Silicon Installer](https://github.com/nicotine-plus/nicotine-plus/releases/latest/download/macos-arm64-installer.zip) ([SHA256](https://github.com/nicotine-plus/nicotine-plus/releases/latest/download/macos-arm64-installer.zip.sha256))
+    - For macOS 14 Sonoma or later
+  </Card>
+</CardGroup>
+
+### Package Managers
+
+| Package Manager | Installation Command |
+|----------------|---------------------|
+| **Homebrew** | `brew install nicotine-plus` |
+| **PowerPC Ports** | For legacy PowerPC Macs |
+
+## GNU/Linux, BSD, Haiku, Solaris
+
+### Operating System Packages
+
+If you are using any of the operating systems listed below, install Nicotine+ using your package manager:
+
+<Tabs>
+  <Tab title="Arch Linux">
+    ```bash
+    sudo pacman -S nicotine+
+    ```
+    Package: `nicotine+`
+  </Tab>
+  
+  <Tab title="Debian/Ubuntu">
+    ```bash
+    sudo apt install nicotine
+    ```
+    Package: `nicotine` (Debian Unstable/Testing)
+    
+    <Note>
+      For stable Debian/Ubuntu releases, see the PPA instructions below.
+    </Note>
+  </Tab>
+  
+  <Tab title="Fedora">
+    ```bash
+    sudo dnf install nicotine+
+    ```
+    Package: `nicotine+`
+  </Tab>
+  
+  <Tab title="Gentoo">
+    ```bash
+    sudo emerge net-p2p/nicotine+
+    ```
+    Package: `net-p2p/nicotine+`
+  </Tab>
+  
+  <Tab title="openSUSE">
+    Available in various openSUSE repositories
+  </Tab>
+</Tabs>
+
+#### Complete Distribution List
+
+| Operating System | Package Name |
+|------------------|-------------|
+| Alpine Linux Edge | `nicotine-plus` |
+| Arch Linux | `nicotine+` |
+| Chimera Linux | `nicotine-plus` |
+| Debian Unstable/Testing | `nicotine` |
+| Fedora | `nicotine+` |
+| FreeBSD Ports | `net-p2p/py-nicotine-plus` |
+| Gentoo | `net-p2p/nicotine+` |
+| GNU Guix | `nicotine+` |
+| Haiku Ports | `nicotineplus` |
+| Mageia | `nicotine+` |
+| Manjaro | `nicotine+` |
+| NixOS | `nicotine-plus` |
+| OpenBSD Ports | `net/nicotine-plus` |
+| OpenMandriva | `nicotine+` |
+| Parabola | `nicotine+` |
+| PLD Linux | `nicotine` |
+| Solus | `nicotine-plus` |
+| T2 SDE | `nicotine-plus` |
+| Void Linux | `nicotine+` |
+
+### Universal Packages (GNU/Linux)
+
+These packages work across different GNU/Linux distributions:
+
+<Tabs>
+  <Tab title="Flatpak">
+    ```bash
+    flatpak install flathub org.nicotine_plus.Nicotine
+    ```
+    
+    Available on [Flathub](https://flathub.org/apps/details/org.nicotine_plus.Nicotine)
+  </Tab>
+  
+  <Tab title="Snap">
+    ```bash
+    sudo snap install nicotine-plus
+    ```
+    
+    Available on [Snapcraft](https://snapcraft.io/nicotine-plus)
+  </Tab>
+</Tabs>
+
+### PPA (Ubuntu/Debian)
+
+For stable packages on Ubuntu and Debian-based distributions:
+
+<Tabs>
+  <Tab title="Ubuntu">
+    ```bash
+    sudo add-apt-repository ppa:nicotine-team/stable
+    sudo apt update
+    sudo apt install nicotine
+    ```
+    
+    Works on Ubuntu and distributions based on it (Linux Mint, elementary OS, Pop!_OS, Ubuntu flavors).
+  </Tab>
+  
+  <Tab title="Debian">
+    ```bash
+    sudo apt update
+    sudo apt install python3-launchpadlib software-properties-common
+    sudo add-apt-repository 'deb https://ppa.launchpadcontent.net/nicotine-team/stable/ubuntu jammy main'
+    sudo apt update
+    sudo apt install nicotine
+    ```
+    
+    Works on Debian and distributions based on it (Devuan, Peppermint OS).
+  </Tab>
+  
+  <Tab title="Manual .deb">
+    If you prefer to install a .deb package manually:
+    
+    1. [Download the .deb package](https://github.com/nicotine-plus/nicotine-plus/releases/latest/download/debian-package.zip)
+    2. Install with `sudo dpkg -i nicotine_*.deb`
+    
+    <Warning>
+      When installing manually, Nicotine+ will **not** update automatically. Download and install the latest version after every update.
+    </Warning>
+  </Tab>
+</Tabs>
+
+### PyPI (Universal)
+
+If no package is available for your operating system, install from [PyPI](https://pypi.org/project/nicotine-plus/):
+
+<Steps>
+  <Step title="Install runtime dependencies">
+    Ensure the [runtime dependencies](https://github.com/nicotine-plus/nicotine-plus/blob/master/doc/DEPENDENCIES.md) are installed for your system.
+    
+    For example, on Debian/Ubuntu:
+    ```bash
+    sudo apt install gir1.2-gtk-4.0 gir1.2-adw-1 python3-gi python3-gi-cairo
+    ```
+  </Step>
+  
+  <Step title="Install Nicotine+ from PyPI">
+    ```bash
+    pip3 install nicotine-plus
+    ```
+  </Step>
+  
+  <Step title="Update when needed">
+    Nicotine+ will not update automatically. When a new release is available:
+    ```bash
+    pip3 install --upgrade nicotine-plus
+    ```
+  </Step>
+</Steps>
+
+## System Requirements
+
+### Required Dependencies
+
+- **Python 3.9 or newer** - Runtime language
+- **GTK 4.6.9+** or **GTK 3.24.24+** - Graphical interface
+- **PyGObject** - Python bindings for GTK
+
+### Recommended Dependencies
+
+- **libadwaita** - For Adwaita theme on GNOME (GTK 4)
+- **gspell** - For spell checking in chat (GTK 3)
+
+<Tip>
+  Windows and macOS installers include all required dependencies - no additional setup needed!
+</Tip>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Quick Start" icon="rocket" href="/quickstart">
+    Get started with Nicotine+ in minutes
+  </Card>
+  
+  <Card title="Configuration" icon="gear" href="/configuration/settings">
+    Customize your installation
+  </Card>
+</CardGroup>

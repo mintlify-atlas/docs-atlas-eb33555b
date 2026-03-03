@@ -1,0 +1,314 @@
+---
+title: Project Architecture
+description: Understand the architecture, component structure, and design patterns used in Nicotine+
+---
+
+Nicotine+ is structured as a modular Python application with a clear separation between core functionality, networking, and user interface components.
+
+## Core Architecture
+
+The application is built around a central `Core` class that handles initialization, component management, and application lifecycle.
+
+### Core Class Structure
+
+The `Core` class (defined in `pynicotine/core.py`) manages all major components:
+
+```python
+class Core:
+    """Core handles initialization, quitting, as well as the various 
+    components used by the application.
+    """
+```
+
+<Info>
+The Core class uses `__slots__` for memory efficiency and clearly defines all component attributes.
+</Info>
+
+### Component System
+
+Nicotine+ uses a component-based architecture where functionality is divided into specialized modules:
+
+#### Network & Protocol Components
+
+- **shares** - Share management and indexing
+- **users** - User tracking and status
+- **network_filter** - Connection filtering
+- **search** - Search functionality
+- **downloads** - Download management
+- **uploads** - Upload management
+
+#### Social Components
+
+- **buddies** - Buddy list management
+- **privatechat** - Private messaging
+- **chatrooms** - Chat room functionality
+- **interests** - Interest-based recommendations
+- **userbrowse** - User file browsing
+- **userinfo** - User information display
+
+#### Utility Components
+
+- **statistics** - Transfer statistics
+- **notifications** - System notifications
+- **now_playing** - Now playing integration
+- **portmapper** - UPnP port mapping
+- **port_checker** - Connection testing
+- **update_checker** - Version checking
+- **pluginhandler** - Plugin system
+
+## Component Initialization
+
+Components are initialized through the `init_components()` method with support for selective enabling:
+
+<Steps>
+  <Step title="Error and Signal Handlers">
+    Initialize error handling and signal handlers for graceful shutdown
+  </Step>
+  
+  <Step title="Configuration Loading">
+    Load application configuration and enable the event system
+  </Step>
+  
+  <Step title="Core Components">
+    Initialize networking, port mapping, and share management
+  </Step>
+  
+  <Step title="Feature Components">
+    Initialize user-facing features like search, transfers, and chat
+  </Step>
+  
+  <Step title="Plugin System">
+    Load and initialize plugins for extensibility
+  </Step>
+</Steps>
+
+```python
+def init_components(self, enabled_components=None, isolated_mode=False):
+    # Enable all components by default
+    if enabled_components is None:
+        enabled_components = {
+            "error_handler", "signal_handler", "cli", "portmapper", 
+            "network_thread", "shares", "users", "notifications", 
+            "network_filter", "now_playing", "statistics", 
+            "port_checker", "update_checker", "search", "downloads", 
+            "uploads", "interests", "userbrowse", "userinfo", 
+            "buddies", "chatrooms", "privatechat", "pluginhandler"
+        }
+```
+
+<Note>
+Components can be selectively enabled for testing or specific use cases. This allows running minimal configurations or isolated testing.
+</Note>
+
+## Event-Driven Architecture
+
+Nicotine+ uses an event-driven system for component communication:
+
+### Core Events
+
+- **start** - Application startup
+- **setup** - Configuration setup
+- **quit** - Application shutdown
+- **schedule-quit** - Graceful shutdown initiation
+- **server-reconnect** - Server reconnection
+- **confirm-quit** - Quit confirmation request
+
+### Message Queue Events
+
+- **enable-message-queue** - Enable network message processing
+- **queue-network-message** - Queue message for network thread
+
+### Event Registration
+
+```python
+for event_name, callback in (
+    ("quit", self._quit),
+    ("server-reconnect", self._server_reconnect)
+):
+    events.connect(event_name, callback)
+```
+
+## Network Architecture
+
+### Network Thread
+
+A dedicated `NetworkThread` handles all network operations:
+
+```python
+if "network_thread" in enabled_components:
+    from pynicotine.slskproto import NetworkThread
+    self._network_thread = NetworkThread()
+```
+
+### Message Passing
+
+Three primary methods handle message routing:
+
+<CodeGroup>
+```python Send to Network Thread
+def send_message_to_network_thread(self, message):
+    """Sends message to the networking thread to inform about something."""
+    events.emit("queue-network-message", message)
+```
+
+```python Send to Server
+def send_message_to_server(self, message):
+    """Sends message to the server."""
+    events.emit("queue-network-message", message)
+```
+
+```python Send to Peer
+def send_message_to_peer(self, username, message):
+    """Sends message to a peer."""
+    message.username = username
+    events.emit("queue-network-message", message)
+```
+</CodeGroup>
+
+### Server Connection
+
+Connection to the Soulseek server is managed through the `ServerConnect` message:
+
+```python
+from pynicotine.slskmessages import ServerConnect
+
+self.send_message_to_network_thread(ServerConnect(
+    addr=config.sections["server"]["server"],
+    login=(config.sections["server"]["login"], 
+           config.sections["server"]["passw"]),
+    interface_name=config.sections["server"]["interface"],
+    interface_address=self.cli_interface_address,
+    listen_port=self.cli_listen_port or 
+                config.sections["server"]["portrange"][0],
+    portmapper=self.portmapper
+))
+```
+
+## Initialization Order
+
+Component initialization follows a specific order to handle dependencies:
+
+<Steps>
+  <Step title="Shares before Users">
+    The `shares` component is initialized before `users` to send share statistics to the server before watching the username. This prevents receiving outdated statistics.
+  </Step>
+  
+  <Step title="Network Thread Early">
+    The network thread is initialized early to handle connection management
+  </Step>
+  
+  <Step title="Notifications and Filters">
+    Notification and filtering systems are initialized before feature components that may trigger them
+  </Step>
+  
+  <Step title="Plugin Handler Last">
+    The plugin handler is initialized last to ensure all components are available for plugins to interact with
+  </Step>
+</Steps>
+
+## Application Lifecycle
+
+### Startup Sequence
+
+<Steps>
+  <Step title="Component Initialization">
+    `init_components()` - Initialize all enabled components
+  </Step>
+  
+  <Step title="Application Start">
+    `start()` - Emit start event and enable CLI prompt if needed
+  </Step>
+  
+  <Step title="Setup (if needed)">
+    `setup()` - Run first-time configuration if required
+  </Step>
+  
+  <Step title="Connection">
+    `connect()` - Connect to Soulseek server
+  </Step>
+</Steps>
+
+### Shutdown Sequence
+
+<Steps>
+  <Step title="Quit Signal">
+    `quit()` - Signal handler or user-initiated quit
+  </Step>
+  
+  <Step title="Schedule Quit">
+    Emit "schedule-quit" event to allow network thread to finish
+  </Step>
+  
+  <Step title="Component Cleanup">
+    Each component performs cleanup operations
+  </Step>
+  
+  <Step title="Save Configuration">
+    `config.write_configuration()` - Persist settings
+  </Step>
+</Steps>
+
+## Update Checker Architecture
+
+The `UpdateChecker` component demonstrates asynchronous operation patterns:
+
+```python
+class UpdateChecker:
+    def check(self):
+        if self._thread is not None and self._thread.is_alive():
+            return
+        
+        self._thread = threading.Thread(target=self._check, 
+                                        name="UpdateChecker")
+        self._thread.start()
+```
+
+<Info>
+Version comparison uses bit-shifted integer encoding for efficient comparison: `(major << 24) + (minor << 16) + (patch << 8) + stable`
+</Info>
+
+## Key Design Patterns
+
+### Slot-Based Attributes
+
+Components use `__slots__` for memory efficiency:
+
+```python
+__slots__ = ("shares", "users", "network_filter", "statistics", 
+             "search", "downloads", "uploads", ...)
+```
+
+### Component Isolation
+
+Components can run in `isolated_mode` for testing:
+
+```python
+config.load_config(isolated_mode)
+PluginHandler(isolated_mode)
+```
+
+### Lazy Imports
+
+Components are imported only when enabled:
+
+```python
+if "shares" in enabled_components:
+    from pynicotine.shares import Shares
+    self.shares = Shares()
+```
+
+## File Organization
+
+Key source files:
+
+- `pynicotine/core.py` - Core application logic
+- `pynicotine/slskproto.py` - Network protocol implementation
+- `pynicotine/slskmessages.py` - Protocol message definitions
+- `pynicotine/config.py` - Configuration management
+- `pynicotine/events.py` - Event system
+- `pynicotine/transfers.py` - Transfer management
+
+## Next Steps
+
+- Review the [Testing](/development/testing) guide to validate your changes
+- See the [Overview](/development/overview) for design philosophy and best practices

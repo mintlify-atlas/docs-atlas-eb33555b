@@ -1,80 +1,341 @@
 ---
-title: "Quickstart"
-description: "Start building awesome documentation in minutes"
+title: "Quick Start Guide"
+description: "Get up and running with Nicotine+ in minutes - from installation to your first download"
 ---
 
-## Get started in three steps
+This guide will walk you through setting up Nicotine+ and performing your first search and download.
 
-Get your documentation site running locally and make your first customization.
+## Installation
 
-### Step 1: Set up your local environment
+First, download and install Nicotine+ for your operating system:
 
-<AccordionGroup>
-  <Accordion icon="copy" title="Clone your docs locally">
-    During the onboarding process, you created a GitHub repository with your docs content if you didn't already have one. You can find a link to this repository in your [dashboard](https://dashboard.mintlify.com).
-    
-    To clone the repository locally so that you can make and preview changes to your docs, follow the [Cloning a repository](https://docs.github.com/en/repositories/creating-and-managing-repositories/cloning-a-repository) guide in the GitHub docs.
-  </Accordion>
-  <Accordion icon="rectangle-terminal" title="Start the preview server">
-    1. Install the Mintlify CLI: `npm i -g mint`
-    2. Navigate to your docs directory and run: `mint dev`
-    3. Open `http://localhost:3000` to see your docs live!
-    
-    <Tip>Your preview updates automatically as you edit files.</Tip>
-  </Accordion>
-</AccordionGroup>
-
-### Step 2: Deploy your changes
-
-<AccordionGroup>
-  <Accordion icon="github" title="Install our GitHub app">
-    Install the Mintlify GitHub app from your [dashboard](https://dashboard.mintlify.com/settings/organization/github-app).
-    
-    Our GitHub app automatically deploys your changes to your docs site, so you don't need to manage deployments yourself.
-</Accordion>
-<Accordion icon="palette" title="Update your site name and colors">
-    For a first change, let's update the name and colors of your docs site.
-
-    1. Open `docs.json` in your editor.
-    2. Change the `"name"` field to your project name.
-    3. Update the `"colors"` to match your brand.
-    4. Save and see your changes instantly at `http://localhost:3000`.
-
-    <Tip>Try changing the primary color to see an immediate difference!</Tip>
-  </Accordion>
-</AccordionGroup>
-
-### Step 3: Go live
-
-<Accordion icon="rocket" title="Publish your docs">
-  1. Commit and push your changes.
-  2. Your docs will update and be live in moments!
-</Accordion>
-
-## Next steps
-
-Now that you have your docs running, explore these key features:
-
-<CardGroup cols={2}>
-
-<Card title="Write Content" icon="pen-to-square" href="/essentials/markdown">
-  Learn MDX syntax and start writing your documentation.
-</Card>
-
-<Card title="Customize style" icon="palette" href="/essentials/settings">
-  Make your docs match your brand perfectly.
-</Card>
-
-<Card title="Add code examples" icon="square-code" href="/essentials/code">
-  Include syntax-highlighted code blocks.
-</Card>
-
-<Card title="API documentation" icon="code" href="/api-reference/introduction">
-  Auto-generate API docs from OpenAPI specs.
-</Card>
-
+<CardGroup cols={3}>
+  <Card title="Windows" icon="windows" href="/downloads#windows">
+    Download the installer for Windows 10+
+  </Card>
+  
+  <Card title="macOS" icon="apple" href="/downloads#macos">
+    Download for Intel or Apple Silicon
+  </Card>
+  
+  <Card title="Linux" icon="linux" href="/downloads#gnulinux-bsd-haiku-solaris">
+    Install via package manager
+  </Card>
 </CardGroup>
 
 <Note>
-  **Need help?** See our [full documentation](https://mintlify.com/docs) or join our [community](https://mintlify.com/community).
+  For detailed installation instructions for your specific platform, see the [Downloads](/downloads) page.
 </Note>
+
+## First Launch
+
+<Steps>
+  <Step title="Launch Nicotine+">
+    Start the application from your applications menu or command line:
+    
+    ```bash
+    nicotine
+    ```
+    
+    On first launch, you'll be greeted with the setup wizard.
+  </Step>
+  
+  <Step title="Create or Log In to Your Soulseek Account">
+    You need a Soulseek account to connect to the network:
+    
+    - **New users**: Choose a username and password to create an account
+    - **Existing users**: Enter your existing Soulseek credentials
+    
+    <Note>
+      Your Soulseek account works with any Soulseek client, including the official client and Nicotine+.
+    </Note>
+  </Step>
+  
+  <Step title="Configure Basic Settings">
+    The setup wizard will guide you through essential settings:
+    
+    - **Download folder**: Where files will be saved (e.g., `~/Downloads`)
+    - **Shared folders**: Folders you want to share (optional, can be set later)
+    - **Port settings**: For optimal connectivity (automatic by default)
+    
+    <Tip>
+      You can skip sharing files initially and configure this later in Settings.
+    </Tip>
+  </Step>
+  
+  <Step title="Connect to the Network">
+    Click **Connect** to join the Soulseek network. You should see:
+    
+    - Connection status change to "Connected"
+    - Number of users online
+    - Server messages in the log
+  </Step>
+</Steps>
+
+## Your First Search
+
+Once connected, you can start searching for files:
+
+<Steps>
+  <Step title="Open the Search Tab">
+    Click the **Search** tab or use the search bar at the top of the main window.
+  </Step>
+  
+  <Step title="Enter Your Search Query">
+    Type what you're looking for (e.g., artist name, album, song title) and press **Enter** or click **Search**.
+    
+    ```
+    Miles Davis Kind of Blue
+    ```
+    
+    <Tip>
+      Use specific search terms for better results. You can use filters like file type, size, and bitrate to narrow results.
+    </Tip>
+  </Step>
+  
+  <Step title="Browse Search Results">
+    Search results will appear showing:
+    
+    - **Filename** - The file name
+    - **User** - Who is sharing the file
+    - **Size** - File size
+    - **Speed** - Estimated transfer speed
+    - **Quality** - Audio bitrate (for music files)
+    
+    Results are sorted by relevance and availability.
+  </Step>
+  
+  <Step title="Download a File">
+    To download a file:
+    
+    1. Right-click on the file you want
+    2. Select **Download** from the context menu
+    
+    Or simply double-click the file to start downloading.
+    
+    The download will appear in the **Downloads** tab.
+  </Step>
+</Steps>
+
+## Understanding Download Queue
+
+Nicotine+ uses a queue system for downloads:
+
+<Tabs>
+  <Tab title="Download States">
+    - **Queued** - Waiting for an upload slot from the user
+    - **Getting status** - Requesting file information
+    - **Downloading** - Active transfer
+    - **Paused** - Transfer paused by you
+    - **Finished** - Download complete
+    - **Failed** - Transfer failed (user offline, file removed, etc.)
+  </Tab>
+  
+  <Tab title="Managing Downloads">
+    Right-click any download to:
+    
+    - **Pause/Resume** - Control individual downloads
+    - **Abort** - Cancel and remove from queue
+    - **Retry** - Attempt download again
+    - **Browse Files** - View all files shared by this user
+    - **Send Message** - Chat with the user
+  </Tab>
+</Tabs>
+
+<Note>
+  Upload slots are limited by the file owner. You may need to wait in their queue before your download starts.
+</Note>
+
+## Setting Up File Sharing (Optional)
+
+Sharing files helps the community and improves your standing with other users:
+
+<Steps>
+  <Step title="Open Settings">
+    Click **Settings** → **Shares** or use the menu: **Edit** → **Preferences** → **Shares**
+  </Step>
+  
+  <Step title="Add Shared Folders">
+    1. Click **Add Folder** or **Add Virtual Folder**
+    2. Select the folder(s) you want to share
+    3. Click **OK** to confirm
+    
+    <Tip>
+      **Virtual folders** let you organize shares with custom names instead of using your actual folder structure.
+    </Tip>
+  </Step>
+  
+  <Step title="Scan Your Shares">
+    Click **Rescan Shares** to build the file database. This may take a few minutes depending on the number of files.
+    
+    The scan will:
+    - Index all files in your shared folders
+    - Extract metadata (for audio files)
+    - Make files available for other users to search
+  </Step>
+  
+  <Step title="Configure Upload Settings">
+    In **Settings** → **Transfers** → **Uploads**, you can configure:
+    
+    - **Upload slots** - Number of simultaneous uploads (default: 2)
+    - **Upload speed limit** - Bandwidth throttling
+    - **Queue settings** - How your upload queue behaves
+  </Step>
+</Steps>
+
+<Warning>
+  Only share files you have the right to distribute. Respect copyright laws in your jurisdiction.
+</Warning>
+
+## Command Line Options
+
+Nicotine+ supports several command-line options for advanced usage:
+
+```bash
+# Start hidden (minimized to tray)
+nicotine --hidden
+
+# Start in headless mode (no GUI)
+nicotine --headless
+
+# Use custom configuration file
+nicotine --config /path/to/config.json
+
+# Use alternative data folder
+nicotine --user-data /path/to/data
+
+# Bind to specific IP (useful for VPN)
+nicotine --bindip 192.168.1.100
+
+# Listen on specific port
+nicotine --port 5000
+
+# Rescan shared files
+nicotine --rescan
+
+# Show version
+nicotine --version
+```
+
+<Tip>
+  Run `nicotine --help` to see all available command-line options.
+</Tip>
+
+## Joining Chat Rooms
+
+Connect with the community through chat rooms:
+
+<Steps>
+  <Step title="Open Chat Rooms">
+    Click the **Chatrooms** tab in the main window.
+  </Step>
+  
+  <Step title="Join a Room">
+    1. Click **Join Room** button
+    2. Enter a room name or browse popular rooms
+    3. Click **Join**
+    
+    Popular rooms include:
+    - **music** - General music discussion
+    - **jazz**, **metal**, **electronic** - Genre-specific rooms
+    - **help** - Get help from experienced users
+  </Step>
+  
+  <Step title="Start Chatting">
+    - Type messages in the input box at the bottom
+    - Right-click usernames to browse their files or send private messages
+    - Use `/help` to see available chat commands
+  </Step>
+</Steps>
+
+## Useful Chat Commands
+
+<CodeGroup>
+```bash Basic Commands
+/help          # Show all available commands
+/me <action>   # Send an action message
+/join <room>   # Join a chat room
+/part          # Leave current room
+/quit          # Disconnect from server
+```
+
+```bash User Commands
+/msg <user> <message>  # Send private message
+/browse <user>         # Browse user's files
+/whois <user>          # Get user information
+/ip <user>             # Get user's IP address
+```
+
+```bash Room Commands
+/topic <text>          # Set room topic (if privileged)
+/users                 # List users in room
+/search <query>        # Search for files
+```
+</CodeGroup>
+
+## Improving Connection Quality
+
+For optimal performance, configure your network settings:
+
+<Steps>
+  <Step title="Enable Port Forwarding">
+    Go to **Settings** → **Network** → **Connectivity**:
+    
+    1. Note your listening port (default: random)
+    2. Configure port forwarding on your router for this port
+    3. Click **Test Port** to verify connectivity
+    
+    <Note>
+      Port forwarding is not required but significantly improves download speeds and connectivity.
+    </Note>
+  </Step>
+  
+  <Step title="Configure Bandwidth">
+    In **Settings** → **Transfers**:
+    
+    - Set download/upload speed limits if needed
+    - Adjust number of upload slots based on your connection
+    - Enable bandwidth throttling during specific hours
+  </Step>
+  
+  <Step title="Check Connection Status">
+    A good connection shows:
+    
+    - **Status**: Connected
+    - **Port Status**: Open (green indicator)
+    - **Server**: Connected to Soulseek server
+  </Step>
+</Steps>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Core Features" icon="star" href="/features/file-sharing">
+    Explore advanced file sharing features
+  </Card>
+  
+  <Card title="Search Tips" icon="magnifying-glass" href="/features/search">
+    Learn advanced search techniques
+  </Card>
+  
+  <Card title="Network Configuration" icon="network-wired" href="/configuration/network">
+    Optimize your network settings
+  </Card>
+  
+  <Card title="User Management" icon="users" href="/features/user-management">
+    Manage buddies, ignored users, and more
+  </Card>
+</CardGroup>
+
+## Getting Help
+
+If you run into issues:
+
+- **IRC Channel**: Join [#nicotine+ on Libera.Chat](https://web.libera.chat/?channel=#nicotine+)
+- **Issue Tracker**: Report bugs on [GitHub](https://github.com/nicotine-plus/nicotine-plus/issues)
+- **Help Room**: Join the **help** chat room in Nicotine+
+- **Documentation**: Browse the full documentation on this site
+
+<Tip>
+  Check the log window (**View** → **Log Window**) for detailed error messages when troubleshooting.
+</Tip>

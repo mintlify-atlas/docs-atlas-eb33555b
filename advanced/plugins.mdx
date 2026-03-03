@@ -1,0 +1,425 @@
+---
+title: Plugin System
+description: Extend Nicotine+ functionality with Python plugins
+---
+
+Nicotine+ includes a powerful plugin system that allows you to extend and customize the application's behavior using Python. Plugins can respond to events, add custom commands, filter messages, and much more.
+
+## Overview
+
+Plugins are stored in two locations:
+- **System plugins**: Built-in plugins located in `pynicotine/plugins/`
+- **User plugins**: Your custom plugins in `~/.local/share/nicotine/plugins/` (or your configured data folder)
+
+<Note>
+All plugins extend the `BasePlugin` class and can hook into various events throughout the application lifecycle.
+</Note>
+
+## Installing Plugins
+
+<Steps>
+  <Step title="Download the plugin">
+    Plugins are typically distributed as `.zip` files or folders containing Python code and a `PLUGININFO` file.
+  </Step>
+  
+  <Step title="Install via GUI">
+    1. Open Nicotine+ and go to **Settings** → **Plugins**
+    2. Click the **Install Plugin** button
+    3. Select the plugin `.zip` file
+    4. The plugin will be extracted to your user plugins folder
+  </Step>
+  
+  <Step title="Enable the plugin">
+    1. Find the newly installed plugin in the plugins list
+    2. Check the box next to the plugin name to enable it
+    3. The plugin will load immediately
+  </Step>
+</Steps>
+
+### Manual Installation
+
+You can also manually install plugins by extracting them to your user plugins folder:
+
+```bash
+# Extract plugin to user plugins folder
+unzip myplugin.zip -d ~/.local/share/nicotine/plugins/
+
+# Or copy a plugin folder directly
+cp -r myplugin ~/.local/share/nicotine/plugins/
+```
+
+## Plugin Structure
+
+Every plugin requires at minimum:
+
+<CodeGroup>
+```python __init__.py
+from pynicotine.pluginsystem import BasePlugin
+
+class Plugin(BasePlugin):
+    def __init__(self):
+        super().__init__()
+        # Plugin initialization
+    
+    def init(self):
+        # Called when settings are loaded
+        pass
+    
+    def loaded_notification(self):
+        # Called when plugin has finished loading
+        self.log("Plugin loaded successfully!")
+```
+
+```text PLUGININFO
+Name="My Plugin"
+Version="1.0"
+Description="A sample plugin for Nicotine+"
+Authors=["Your Name"]
+```
+</CodeGroup>
+
+## Plugin Capabilities
+
+### Event Hooks
+
+Plugins can hook into numerous events. Here are the most commonly used:
+
+#### Chat Events
+
+```python
+def incoming_public_chat_event(self, room, user, line):
+    """Intercept incoming chat room messages"""
+    if "spam" in line.lower():
+        return returncode["zap"]  # Block this message
+    return None
+
+def incoming_private_chat_event(self, user, line):
+    """Intercept incoming private messages"""
+    pass
+
+def outgoing_public_chat_event(self, room, line):
+    """Intercept outgoing chat room messages"""
+    pass
+```
+
+#### Search Events
+
+```python
+def search_request_notification(self, searchterm, user, token):
+    """Notified when receiving a search request"""
+    self.log(f"User {user} searched for: {searchterm}")
+
+def outgoing_global_search_event(self, text):
+    """Intercept outgoing search queries"""
+    pass
+```
+
+#### Transfer Events
+
+```python
+def upload_started_notification(self, user, virtual_path, real_path):
+    """Notified when upload starts"""
+    self.log(f"Uploading {virtual_path} to {user}")
+
+def download_finished_notification(self, user, virtual_path, real_path):
+    """Notified when download completes"""
+    pass
+```
+
+#### Connection Events
+
+```python
+def server_connect_notification(self):
+    """Notified when connected to server"""
+    self.log("Connected to Soulseek server")
+
+def join_chatroom_notification(self, room):
+    """Notified when joining a chat room"""
+    pass
+```
+
+### Return Codes
+
+Event methods can return special codes to control message flow:
+
+- `returncode["break"]` (0) - Stop other plugins from processing, but let Nicotine+ handle it
+- `returncode["zap"]` (1) - Stop other plugins and block Nicotine+ from processing
+- `returncode["pass"]` (2) - Continue to next plugin (default if nothing returned)
+
+```python
+from pynicotine.pluginsystem import returncode
+
+def incoming_public_chat_event(self, room, user, line):
+    if len(line) > 500:
+        return returncode["zap"]  # Block overly long messages
+    return returncode["pass"]  # Allow normal processing
+```
+
+### Custom Commands
+
+Plugins can register commands for chat rooms, private chats, and CLI:
+
+```python
+class Plugin(BasePlugin):
+    def __init__(self):
+        super().__init__()
+        
+        self.commands = {
+            "hello": {
+                "description": "Say hello",
+                "callback": self.hello_command,
+                "parameters": ["<name>"],
+                "aliases": ["hi", "greet"]
+            },
+            "stats": {
+                "description": "Show statistics",
+                "callback": self.stats_command,
+                "disable": ["cli"]  # Only in chat, not CLI
+            }
+        }
+    
+    def hello_command(self, args):
+        name = args.strip()
+        self.send_message(f"Hello, {name}!")
+        return True
+    
+    def stats_command(self, args):
+        self.output("Statistics: ...")
+        return True
+```
+
+Commands are invoked with `/command` in chat:
+```
+/hello Alice
+/stats
+```
+
+### Plugin Settings
+
+Plugins can define configurable settings:
+
+```python
+class Plugin(BasePlugin):
+    def __init__(self):
+        super().__init__()
+        
+        self.settings = {
+            "max_length": 200,
+            "enabled": True,
+            "blocklist": []
+        }
+        
+        self.metasettings = {
+            "max_length": {
+                "description": "Maximum message length",
+                "type": "integer"
+            },
+            "enabled": {
+                "description": "Enable spam filtering",
+                "type": "bool"
+            },
+            "blocklist": {
+                "description": "Blocked phrases",
+                "type": "list string"
+            }
+        }
+```
+
+Settings are automatically saved to the Nicotine+ config file and can be edited in the GUI.
+
+### Helper Methods
+
+#### Sending Messages
+
+```python
+# Send to chat room
+self.send_public("room_name", "Hello room!")
+
+# Send private message
+self.send_private("username", "Hello!", show_ui=True)
+
+# Echo message locally (not sent to others)
+self.echo_public("room_name", "Local message", message_type="local")
+self.echo_private("username", "Local message", message_type="local")
+
+# Send to current context (where command was run)
+self.send_message("This goes to the active chat")
+self.output("This is displayed as command output")
+```
+
+#### Logging
+
+```python
+self.log("Plugin message")
+self.log("User %s uploaded %s files", (username, count))
+```
+
+## Built-in Plugins
+
+Nicotine+ includes several built-in plugins:
+
+- **core_commands** - Essential commands (always enabled)
+- **spamfilter** - Filter spam messages based on length and patterns
+- **leech_detector** - Detect users who download without sharing
+- **now_playing_sender** - Share currently playing music (MPRIS)
+- **auto_buddy_rooms** - Automatically join rooms of buddies
+- **auto_user_browse** - Auto-browse users who browse you
+
+<Tip>
+Examine the built-in plugins in `pynicotine/plugins/` for real-world examples of plugin development.
+</Tip>
+
+## Example: Spam Filter Plugin
+
+Here's a complete example of the built-in spam filter:
+
+```python
+from pynicotine.pluginsystem import BasePlugin, returncode
+
+class Plugin(BasePlugin):
+    def __init__(self):
+        super().__init__()
+        
+        self.settings = {
+            "minlength": 200,
+            "maxlength": 400,
+            "maxdiffcharacters": 10,
+            "badprivatephrases": []
+        }
+        
+        self.metasettings = {
+            "minlength": {
+                "description": "Minimum length for ASCII spam detection",
+                "type": "integer"
+            },
+            "maxdiffcharacters": {
+                "description": "Max different characters for ASCII spam",
+                "type": "integer"
+            },
+            "maxlength": {
+                "description": "Maximum message length before blocking",
+                "type": "integer"
+            },
+            "badprivatephrases": {
+                "description": "Filter messages containing phrase:",
+                "type": "list string"
+            }
+        }
+    
+    def incoming_public_chat_event(self, room, user, line):
+        # Block ASCII spam (repetitive characters)
+        if (len(line) >= self.settings["minlength"] and 
+            len(set(line)) < self.settings["maxdiffcharacters"]):
+            self.log('Filtered ASCII spam from "%s" in room "%s"', (user, room))
+            return returncode["zap"]
+        
+        # Block overly long messages
+        if len(line) > self.settings["maxlength"]:
+            self.log('Filtered long line (%s chars) from "%s"', (len(line), user))
+            return returncode["zap"]
+        
+        # Check for blocked phrases
+        for phrase in self.settings["badprivatephrases"]:
+            if phrase.lower() in line.lower():
+                self.log("Blocked spam from %s: %s", (user, line))
+                return returncode["zap"]
+        
+        return None
+```
+
+## Advanced Features
+
+### ResponseThrottle
+
+Prevent flooding when responding to user requests:
+
+```python
+from pynicotine.pluginsystem import ResponseThrottle
+
+class Plugin(BasePlugin):
+    def __init__(self):
+        super().__init__()
+        self.throttle = None
+    
+    def init(self):
+        self.throttle = ResponseThrottle(self.core, self.human_name)
+    
+    def public_room_message_notification(self, room, user, line):
+        if "!info" in line:
+            if self.throttle.ok_to_respond(room, user, "info", seconds_limit_min=30):
+                self.send_public(room, "Here's the info...")
+                self.throttle.responded()
+```
+
+### Accessing Core Components
+
+Plugins have access to core Nicotine+ components:
+
+```python
+# Access config
+self.config.sections["server"]["login"]
+
+# Access core components
+self.core.users.login_username
+self.core.chatrooms.send_message(room, text)
+self.core.privatechat.send_message(user, text)
+self.core.shares.rescan_shares()
+```
+
+<Warning>
+Direct manipulation of core components should be done carefully. Prefer using the provided helper methods when possible.
+</Warning>
+
+## Lifecycle Methods
+
+Plugins can implement these lifecycle methods:
+
+```python
+def __init__(self):
+    # Plugin class initializing, settings not available yet
+    pass
+
+def init(self):
+    # Called after __init__ when settings have loaded
+    pass
+
+def loaded_notification(self):
+    # Plugin finished loading, commands registered
+    pass
+
+def disable(self):
+    # Plugin started unloading
+    pass
+
+def unloaded_notification(self):
+    # Plugin finished unloading
+    pass
+
+def shutdown_notification(self):
+    # Application shutting down
+    pass
+```
+
+## Uninstalling Plugins
+
+To remove a plugin:
+
+<Steps>
+  <Step title="Disable the plugin">
+    Uncheck the plugin in **Settings** → **Plugins** to disable it.
+  </Step>
+  
+  <Step title="Uninstall">
+    Click the **Uninstall** button next to the plugin (user plugins only).
+  </Step>
+</Steps>
+
+<Note>
+Built-in system plugins cannot be uninstalled, only disabled.
+</Note>
+
+## Next Steps
+
+- Review built-in plugins in the source code at `pynicotine/plugins/`
+- Check the `examplars` plugin folder for additional examples
+- Read the [BasePlugin API documentation](https://github.com/nicotine-plus/nicotine-plus/blob/master/pynicotine/pluginsystem.py)

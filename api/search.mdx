@@ -1,0 +1,411 @@
+---
+title: 'Search'
+description: 'Search for files on the Soulseek network'
+---
+
+The `Search` class manages file searches across the Soulseek network, handling search queries, results, and wishlist functionality.
+
+## Overview
+
+The Search module provides:
+- Global file searches across the network
+- User-specific searches
+- Room-specific searches
+- Wishlist functionality for automatic searches
+- Search result filtering and sorting
+- Search history management
+
+## Search Class
+
+### Initialization
+
+```python
+from pynicotine.search import Search
+
+search = Search()
+```
+
+### Core Search Methods
+
+#### do_search()
+
+Performs a search across the network.
+
+```python
+token = search.do_search(search_term, mode, users=None, room=None)
+```
+
+<ParamField path="search_term" type="str" required>
+  The search query string
+</ParamField>
+
+<ParamField path="mode" type="str" required>
+  Search mode: "global", "buddies", "rooms", or "user"
+</ParamField>
+
+<ParamField path="users" type="list">
+  List of specific users to search (for "user" mode)
+</ParamField>
+
+<ParamField path="room" type="str">
+  Room name to search in (for "rooms" mode)
+</ParamField>
+
+<ResponseField name="token" type="int">
+  Unique search token for tracking results
+</ResponseField>
+
+```python
+# Example: Global search
+token = search.do_search("electronic music flac", "global")
+print(f"Search started with token: {token}")
+
+# Example: User-specific search
+token = search.do_search("discography", "user", users=["username1", "username2"])
+
+# Example: Room search
+token = search.do_search("album", "rooms", room="Music")
+```
+
+#### add_allowed_token()
+
+Adds a token to the allowed list for receiving results.
+
+```python
+search.add_allowed_token(token)
+```
+
+<ParamField path="token" type="int" required>
+  Search token to allow
+</ParamField>
+
+#### remove_allowed_token()
+
+Removes a token from the allowed list.
+
+```python
+search.remove_allowed_token(token)
+```
+
+<ParamField path="token" type="int" required>
+  Search token to remove
+</ParamField>
+
+### Search Result Methods
+
+#### process_search_term()
+
+Processes and normalizes a search term.
+
+```python
+processed_term, excluded_words = search.process_search_term(search_term)
+```
+
+<ParamField path="search_term" type="str" required>
+  Raw search query
+</ParamField>
+
+<ResponseField name="processed_term" type="str">
+  Normalized search term
+</ResponseField>
+
+<ResponseField name="excluded_words" type="set">
+  Set of words to exclude (words starting with "-")
+</ResponseField>
+
+```python
+# Example: Process search with exclusions
+term, excluded = search.process_search_term("rock music -metal -punk")
+print(f"Search: {term}")  # "rock music"
+print(f"Exclude: {excluded}")  # {"metal", "punk"}
+```
+
+#### append_search_results()
+
+Appends new results to an existing search.
+
+```python
+search.append_search_results(token, username, results)
+```
+
+<ParamField path="token" type="int" required>
+  Search token
+</ParamField>
+
+<ParamField path="username" type="str" required>
+  Username who provided the results
+</ParamField>
+
+<ParamField path="results" type="list" required>
+  List of file results
+</ParamField>
+
+#### get_search_results()
+
+Retrieves results for a search token.
+
+```python
+results = search.get_search_results(token)
+```
+
+<ParamField path="token" type="int" required>
+  Search token
+</ParamField>
+
+<ResponseField name="results" type="dict">
+  Dictionary mapping usernames to their results
+</ResponseField>
+
+### Wishlist Methods
+
+#### add_wish()
+
+Adds a search term to the wishlist for automatic searches.
+
+```python
+search.add_wish(search_term)
+```
+
+<ParamField path="search_term" type="str" required>
+  Search term to add to wishlist
+</ParamField>
+
+```python
+# Add wishlist items
+search.add_wish("rare vinyl rip")
+search.add_wish("unreleased album")
+```
+
+#### remove_wish()
+
+Removes a search term from the wishlist.
+
+```python
+search.remove_wish(search_term)
+```
+
+<ParamField path="search_term" type="str" required>
+  Search term to remove
+</ParamField>
+
+#### get_wishlist()
+
+Retrieves the current wishlist.
+
+```python
+wishlist = search.get_wishlist()
+```
+
+<ResponseField name="wishlist" type="list">
+  List of wishlist search terms
+</ResponseField>
+
+#### is_wish()
+
+Checks if a search term is in the wishlist.
+
+```python
+is_wishlist = search.is_wish(search_term)
+```
+
+<ResponseField name="is_wishlist" type="bool">
+  True if term is in wishlist
+</ResponseField>
+
+### Search History
+
+#### add_search_history()
+
+Adds a search term to the history.
+
+```python
+search.add_search_history(search_term)
+```
+
+<ParamField path="search_term" type="str" required>
+  Search term to add to history
+</ParamField>
+
+#### get_search_history()
+
+Retrieves recent search history.
+
+```python
+history = search.get_search_history()
+```
+
+<ResponseField name="history" type="list">
+  List of recent search terms
+</ResponseField>
+
+## Search Modes
+
+### Global Search
+
+Searches all users connected to the network:
+
+```python
+token = search.do_search("jazz collection", "global")
+```
+
+### Buddy Search
+
+Searches only users on your buddy list:
+
+```python
+token = search.do_search("rare tracks", "buddies")
+```
+
+### Room Search
+
+Searches users in a specific chat room:
+
+```python
+token = search.do_search("soundtrack", "rooms", room="Soundtracks")
+```
+
+### User Search
+
+Searches specific users:
+
+```python
+token = search.do_search(
+    "complete discography",
+    "user",
+    users=["user1", "user2", "user3"]
+)
+```
+
+## Events
+
+The Search module emits events for search lifecycle:
+
+```python
+from pynicotine.events import events
+
+# Search started
+events.connect("search-started", on_search_started)
+
+# Search results received
+events.connect("search-results", on_search_results)
+
+# Search finished
+events.connect("search-finished", on_search_finished)
+
+def on_search_started(token, search_term):
+    print(f"Search '{search_term}' started (token: {token})")
+
+def on_search_results(token, username, results):
+    print(f"Received {len(results)} results from {username}")
+    for result in results:
+        print(f"  - {result['file']} ({result['size']} bytes)")
+
+def on_search_finished(token):
+    print(f"Search {token} completed")
+```
+
+## Result Filtering
+
+### Filter by File Type
+
+```python
+def filter_audio_files(results):
+    audio_extensions = {'.mp3', '.flac', '.ogg', '.m4a', '.wav'}
+    filtered = []
+    
+    for username, user_results in results.items():
+        for result in user_results:
+            file_path = result['file'].lower()
+            if any(file_path.endswith(ext) for ext in audio_extensions):
+                filtered.append((username, result))
+    
+    return filtered
+
+# Get and filter results
+results = search.get_search_results(token)
+audio_files = filter_audio_files(results)
+```
+
+### Filter by File Size
+
+```python
+def filter_by_size(results, min_size=None, max_size=None):
+    filtered = []
+    
+    for username, user_results in results.items():
+        for result in user_results:
+            size = result['size']
+            
+            if min_size and size < min_size:
+                continue
+            if max_size and size > max_size:
+                continue
+                
+            filtered.append((username, result))
+    
+    return filtered
+
+# Filter for files between 10MB and 100MB
+results = search.get_search_results(token)
+filtered = filter_by_size(results, min_size=10*1024*1024, max_size=100*1024*1024)
+```
+
+## Complete Example
+
+```python
+from pynicotine.search import Search
+from pynicotine.events import events
+from pynicotine.core import core
+
+# Initialize search
+search = Search()
+
+# Track search results
+search_results = {}
+
+def on_search_results(token, username, results):
+    if token not in search_results:
+        search_results[token] = {}
+    
+    search_results[token][username] = results
+    print(f"Got {len(results)} results from {username}")
+    
+    # Filter for high-quality audio
+    for result in results:
+        bitrate = result.get('bitrate', 0)
+        if bitrate >= 320:  # High quality MP3 or lossless
+            print(f"  HQ: {result['file']} ({bitrate} kbps)")
+
+def on_search_finished(token):
+    if token in search_results:
+        total_results = sum(len(r) for r in search_results[token].values())
+        total_users = len(search_results[token])
+        print(f"Search complete: {total_results} results from {total_users} users")
+
+# Connect events
+events.connect("search-results", on_search_results)
+events.connect("search-finished", on_search_finished)
+
+# Perform searches
+token1 = search.do_search("electronic music flac", "global")
+token2 = search.do_search("ambient", "buddies")
+
+# Add to wishlist for automatic searches
+search.add_wish("rare vinyl rip")
+search.add_wish("remastered edition")
+
+# Add to search history
+search.add_search_history("electronic music flac")
+```
+
+## Best Practices
+
+<Note>
+  - Use specific search terms to reduce irrelevant results
+  - Leverage exclusion words (prefix with "-") to filter unwanted content
+  - Use wishlist for ongoing searches of rare content
+  - Store search tokens to correlate results with queries
+  - Filter results by file attributes (size, bitrate, format) client-side
+  - Limit simultaneous searches to avoid server throttling
+  - Use room or buddy searches for more targeted results
+</Note>

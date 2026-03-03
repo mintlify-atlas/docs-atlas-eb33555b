@@ -1,0 +1,180 @@
+---
+title: Core Module
+description: Core initialization and component management for Nicotine+
+---
+
+The `core` module handles application initialization, component management, and lifecycle operations.
+
+## Core Class
+
+The `Core` class is the central component manager that initializes and coordinates all other modules.
+
+### Attributes
+
+<ParamField path="shares" type="Shares">
+  Manages shared files and folders
+</ParamField>
+
+<ParamField path="users" type="Users">
+  Handles user management and status tracking
+</ParamField>
+
+<ParamField path="network_filter" type="NetworkFilter">
+  Controls user banning and IP filtering
+</ParamField>
+
+<ParamField path="search" type="Search">
+  Manages search functionality
+</ParamField>
+
+<ParamField path="downloads" type="Downloads">
+  Handles file downloads
+</ParamField>
+
+<ParamField path="uploads" type="Uploads">
+  Manages file uploads
+</ParamField>
+
+<ParamField path="chatrooms" type="ChatRooms">
+  Controls chat room functionality
+</ParamField>
+
+<ParamField path="privatechat" type="PrivateChat">
+  Manages private messages
+</ParamField>
+
+### Methods
+
+#### init_components()
+
+```python
+def init_components(self, enabled_components=None, isolated_mode=False)
+```
+
+Initializes all application components with optional selective enabling.
+
+<ParamField path="enabled_components" type="set">
+  Set of component names to enable. If None, all components are enabled.
+</ParamField>
+
+<ParamField path="isolated_mode" type="bool" default={false}>
+  Whether to run in isolated mode (no network features)
+</ParamField>
+
+<Note>
+Available components include: `"error_handler"`, `"signal_handler"`, `"cli"`, `"portmapper"`, `"network_thread"`, `"shares"`, `"users"`, `"search"`, `"downloads"`, `"uploads"`, `"chatrooms"`, `"privatechat"`, and more.
+</Note>
+
+#### start()
+
+```python
+def start(self)
+```
+
+Starts the application and emits the `start` event to all components.
+
+#### connect()
+
+```python
+def connect(self)
+```
+
+Connects to the Soulseek server using configured credentials.
+
+<CodeGroup>
+```python Example: Initialize and Connect
+from pynicotine.core import core
+from pynicotine.config import config
+
+# Load configuration
+config.load_config()
+
+# Initialize components
+core.init_components()
+
+# Start the application
+core.start()
+
+# Connect to server
+core.connect()
+```
+</CodeGroup>
+
+#### disconnect()
+
+```python
+def disconnect(self)
+```
+
+Disconnects from the Soulseek server.
+
+#### quit()
+
+```python
+def quit(self, signal_type=None, _frame=None)
+```
+
+Shuts down the application gracefully.
+
+<ParamField path="signal_type" type="int">
+  Signal type if quit was triggered by a system signal
+</ParamField>
+
+#### send_message_to_server()
+
+```python
+def send_message_to_server(self, message)
+```
+
+Sends a protocol message to the Soulseek server.
+
+<ParamField path="message" type="ServerMessage">
+  The message object to send
+</ParamField>
+
+#### send_message_to_peer()
+
+```python
+def send_message_to_peer(self, username, message)
+```
+
+Sends a protocol message to another peer.
+
+<ParamField path="username" type="str">
+  Target peer's username
+</ParamField>
+
+<ParamField path="message" type="PeerMessage">
+  The message object to send
+</ParamField>
+
+## UpdateChecker Class
+
+Handles checking for application updates.
+
+### Methods
+
+#### check()
+
+```python
+def check(self)
+```
+
+Checks PyPI for the latest version of Nicotine+.
+
+<CodeGroup>
+```python Example: Check for Updates
+from pynicotine.core import UpdateChecker
+
+checker = UpdateChecker()
+checker.check()
+```
+</CodeGroup>
+
+## Global Instance
+
+```python
+from pynicotine.core import core
+```
+
+A global `core` instance is available for import and provides access to all application components.

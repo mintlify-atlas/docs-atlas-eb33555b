@@ -1,0 +1,491 @@
+---
+title: 'Transfers'
+description: 'Manage file uploads and downloads in Nicotine+'
+---
+
+The Transfers module manages file uploads and downloads, including queue management, transfer status tracking, and bandwidth control.
+
+## Overview
+
+The Transfers module consists of three main classes:
+- **Transfers**: Main transfer coordinator
+- **Downloads**: Download-specific management
+- **Uploads**: Upload-specific management
+
+## Transfers Class
+
+### Initialization
+
+```python
+from pynicotine.transfers import Transfers
+
+transfers = Transfers()
+```
+
+### Core Methods
+
+#### get_downloads()
+
+Returns the Downloads instance.
+
+```python
+downloads = transfers.get_downloads()
+```
+
+#### get_uploads()
+
+Returns the Uploads instance.
+
+```python
+uploads = transfers.get_uploads()
+```
+
+#### set_transfer_speed_limit()
+
+Sets bandwidth limits for transfers.
+
+```python
+transfers.set_transfer_speed_limit(download_limit, upload_limit)
+```
+
+<ParamField path="download_limit" type="int" required>
+  Download speed limit in KB/s (0 for unlimited)
+</ParamField>
+
+<ParamField path="upload_limit" type="int" required>
+  Upload speed limit in KB/s (0 for unlimited)
+</ParamField>
+
+```python
+# Set 1 MB/s download limit, 500 KB/s upload limit
+transfers.set_transfer_speed_limit(1024, 512)
+
+# Unlimited transfers
+transfers.set_transfer_speed_limit(0, 0)
+```
+
+## Downloads Class
+
+### Download Management
+
+#### add_download()
+
+Adds a file to the download queue.
+
+```python
+downloads.add_download(
+    username="user123",
+    virtual_path="Music/Album/song.flac",
+    size=42000000,
+    local_path="/home/user/Downloads/song.flac"
+)
+```
+
+<ParamField path="username" type="str" required>
+  Username to download from
+</ParamField>
+
+<ParamField path="virtual_path" type="str" required>
+  Virtual path of the file on the remote user's share
+</ParamField>
+
+<ParamField path="size" type="int">
+  File size in bytes (if known)
+</ParamField>
+
+<ParamField path="local_path" type="str">
+  Local filesystem path where file will be saved
+</ParamField>
+
+<ParamField path="prioritize" type="bool" default="False">
+  Place at front of download queue
+</ParamField>
+
+#### abort_download()
+
+Aborts an active download.
+
+```python
+downloads.abort_download(username, virtual_path)
+```
+
+<ParamField path="username" type="str" required>
+  Username of the download
+</ParamField>
+
+<ParamField path="virtual_path" type="str" required>
+  Virtual path of the file
+</ParamField>
+
+#### abort_downloads()
+
+Aborts multiple downloads.
+
+```python
+downloads.abort_downloads([
+    ("user1", "path/to/file1.mp3"),
+    ("user2", "path/to/file2.flac")
+])
+```
+
+<ParamField path="downloads_list" type="list" required>
+  List of (username, virtual_path) tuples
+</ParamField>
+
+#### clear_download()
+
+Removes a download from the queue.
+
+```python
+downloads.clear_download(username, virtual_path)
+```
+
+#### retry_download()
+
+Retries a failed download.
+
+```python
+downloads.retry_download(username, virtual_path)
+```
+
+### Download Queue Methods
+
+#### get_downloads()
+
+Returns all downloads.
+
+```python
+all_downloads = downloads.get_downloads()
+```
+
+<ResponseField name="downloads" type="dict">
+  Dictionary mapping (username, virtual_path) to download info
+</ResponseField>
+
+#### get_active_downloads()
+
+Returns currently active downloads.
+
+```python
+active = downloads.get_active_downloads()
+```
+
+#### get_queued_downloads()
+
+Returns queued downloads waiting to start.
+
+```python
+queued = downloads.get_queued_downloads()
+```
+
+#### get_user_downloads()
+
+Returns downloads from a specific user.
+
+```python
+user_downloads = downloads.get_user_downloads("username")
+```
+
+### Download Folders
+
+#### add_download_folder()
+
+Downloads an entire folder from a user.
+
+```python
+downloads.add_download_folder(
+    username="user123",
+    folder="Music/Complete Discography",
+    local_path="/home/user/Downloads/Discography"
+)
+```
+
+<ParamField path="username" type="str" required>
+  Username to download from
+</ParamField>
+
+<ParamField path="folder" type="str" required>
+  Virtual folder path
+</ParamField>
+
+<ParamField path="local_path" type="str">
+  Local directory to save files
+</ParamField>
+
+<ParamField path="prefix_username" type="bool" default="False">
+  Prefix local folder name with username
+</ParamField>
+
+## Uploads Class
+
+### Upload Management
+
+#### push_upload()
+
+Queues a file for upload to a user.
+
+```python
+uploads.push_upload(
+    username="requesting_user",
+    virtual_path="My Music/album/track.mp3",
+    real_path="/home/user/Shares/Music/album/track.mp3",
+    size=5000000
+)
+```
+
+<ParamField path="username" type="str" required>
+  Username requesting the file
+</ParamField>
+
+<ParamField path="virtual_path" type="str" required>
+  Virtual path in your shares
+</ParamField>
+
+<ParamField path="real_path" type="str" required>
+  Actual filesystem path
+</ParamField>
+
+<ParamField path="size" type="int" required>
+  File size in bytes
+</ParamField>
+
+#### abort_upload()
+
+Aborts an active upload.
+
+```python
+uploads.abort_upload(username, virtual_path)
+```
+
+#### clear_upload()
+
+Removes an upload from the queue.
+
+```python
+uploads.clear_upload(username, virtual_path)
+```
+
+### Upload Queue Methods
+
+#### get_uploads()
+
+Returns all uploads.
+
+```python
+all_uploads = uploads.get_uploads()
+```
+
+<ResponseField name="uploads" type="dict">
+  Dictionary mapping (username, virtual_path) to upload info
+</ResponseField>
+
+#### get_active_uploads()
+
+Returns currently active uploads.
+
+```python
+active = uploads.get_active_uploads()
+```
+
+#### get_queued_uploads()
+
+Returns queued uploads.
+
+```python
+queued = uploads.get_queued_uploads()
+```
+
+#### get_user_uploads()
+
+Returns uploads to a specific user.
+
+```python
+user_uploads = uploads.get_user_uploads("username")
+```
+
+### Queue Management
+
+#### update_upload_limits()
+
+Updates the number of simultaneous upload slots.
+
+```python
+uploads.update_upload_limits(slots=2, privileged_slots=1)
+```
+
+<ParamField path="slots" type="int" default="2">
+  Number of normal upload slots
+</ParamField>
+
+<ParamField path="privileged_slots" type="int" default="1">
+  Number of slots for privileged users
+</ParamField>
+
+#### ban_user()
+
+Bans a user from downloading.
+
+```python
+uploads.ban_user("username")
+```
+
+#### unban_user()
+
+Removes a user from the ban list.
+
+```python
+uploads.unban_user("username")
+```
+
+## Transfer Status
+
+Transfers have several possible statuses:
+
+<Expandable title="Download Status">
+  - **Queued**: Waiting to start
+  - **Getting status**: Requesting file info
+  - **Transferring**: Actively downloading
+  - **Paused**: Manually paused
+  - **Filtered**: Blocked by file filter
+  - **Finished**: Completed successfully
+  - **Failed**: Transfer failed
+  - **Aborted**: Manually cancelled
+</Expandable>
+
+<Expandable title="Upload Status">
+  - **Queued**: Waiting to start
+  - **Transferring**: Actively uploading
+  - **Finished**: Completed successfully
+  - **Failed**: Transfer failed
+  - **Aborted**: Manually cancelled
+  - **Banned**: User is banned
+</Expandable>
+
+## Events
+
+The Transfers module emits events for tracking transfer progress:
+
+```python
+from pynicotine.events import events
+
+# Download started
+events.connect("download-started", on_download_started)
+
+# Download progress
+events.connect("download-progress", on_download_progress)
+
+# Download finished
+events.connect("download-finished", on_download_finished)
+
+# Upload started
+events.connect("upload-started", on_upload_started)
+
+# Upload finished
+events.connect("upload-finished", on_upload_finished)
+
+def on_download_started(username, virtual_path):
+    print(f"Download started: {virtual_path} from {username}")
+
+def on_download_progress(username, virtual_path, bytes_downloaded, total_size):
+    progress = (bytes_downloaded / total_size) * 100
+    print(f"Download progress: {progress:.1f}%")
+
+def on_download_finished(username, virtual_path, local_path):
+    print(f"Download complete: {local_path}")
+
+def on_upload_started(username, virtual_path):
+    print(f"Upload started: {virtual_path} to {username}")
+
+def on_upload_finished(username, virtual_path):
+    print(f"Upload complete to {username}")
+```
+
+## Complete Example
+
+```python
+from pynicotine.transfers import Transfers
+from pynicotine.events import events
+from pynicotine.core import core
+
+# Initialize transfers
+transfers = Transfers()
+downloads = transfers.get_downloads()
+uploads = transfers.get_uploads()
+
+# Configure bandwidth limits
+transfers.set_transfer_speed_limit(
+    download_limit=2048,  # 2 MB/s
+    upload_limit=1024     # 1 MB/s
+)
+
+# Configure upload slots
+uploads.update_upload_limits(slots=3, privileged_slots=2)
+
+# Track downloads
+active_downloads = {}
+
+def on_download_started(username, virtual_path):
+    key = (username, virtual_path)
+    active_downloads[key] = {
+        'started': time.time(),
+        'bytes': 0
+    }
+    print(f"Started: {virtual_path}")
+
+def on_download_progress(username, virtual_path, bytes_downloaded, total_size):
+    key = (username, virtual_path)
+    active_downloads[key]['bytes'] = bytes_downloaded
+    
+    # Calculate speed
+    elapsed = time.time() - active_downloads[key]['started']
+    speed = bytes_downloaded / elapsed / 1024  # KB/s
+    progress = (bytes_downloaded / total_size) * 100
+    
+    print(f"{virtual_path}: {progress:.1f}% @ {speed:.1f} KB/s")
+
+def on_download_finished(username, virtual_path, local_path):
+    key = (username, virtual_path)
+    if key in active_downloads:
+        elapsed = time.time() - active_downloads[key]['started']
+        print(f"Completed in {elapsed:.1f}s: {local_path}")
+        del active_downloads[key]
+
+# Connect events
+events.connect("download-started", on_download_started)
+events.connect("download-progress", on_download_progress)
+events.connect("download-finished", on_download_finished)
+
+# Add downloads
+downloads.add_download(
+    username="user123",
+    virtual_path="Music/Album/01-track.flac",
+    size=45000000,
+    local_path="/home/user/Downloads/track.flac"
+)
+
+# Download entire folder
+downloads.add_download_folder(
+    username="user456",
+    folder="Music/Complete Discography",
+    local_path="/home/user/Downloads/Discography",
+    prefix_username=True
+)
+
+# Check queue status
+print(f"Active downloads: {len(downloads.get_active_downloads())}")
+print(f"Queued downloads: {len(downloads.get_queued_downloads())}")
+print(f"Active uploads: {len(uploads.get_active_uploads())}")
+```
+
+## Best Practices
+
+<Note>
+  - Set reasonable bandwidth limits to avoid network congestion
+  - Monitor transfer events for real-time progress tracking
+  - Use prioritize flag for urgent downloads
+  - Handle failed transfers with retry logic
+  - Clean up completed transfers periodically
+  - Configure upload slots based on your upload bandwidth
+  - Use folder downloads for batch operations
+  - Implement queue management to control simultaneous transfers
+</Note>

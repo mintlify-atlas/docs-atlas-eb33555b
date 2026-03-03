@@ -1,0 +1,496 @@
+---
+title: 'Chat'
+description: 'Manage chat rooms and private messages in Nicotine+'
+---
+
+The Chat module provides functionality for chat rooms and private messaging, including room management, message handling, and user tracking.
+
+## Overview
+
+The Chat module consists of two main classes:
+- **ChatRooms**: Public and private chat room management
+- **PrivateChat**: Private messaging between users
+
+## ChatRooms Class
+
+### Initialization
+
+```python
+from pynicotine.chatrooms import ChatRooms
+
+chatrooms = ChatRooms()
+```
+
+### Room Management
+
+#### join_room()
+
+Joins a chat room.
+
+```python
+chatrooms.join_room(room_name, private=False)
+```
+
+<ParamField path="room_name" type="str" required>
+  Name of the room to join
+</ParamField>
+
+<ParamField path="private" type="bool" default="False">
+  Whether this is a private room
+</ParamField>
+
+```python
+# Join public room
+chatrooms.join_room("Music")
+
+# Join private room
+chatrooms.join_room("private-room-123", private=True)
+```
+
+#### leave_room()
+
+Leaves a chat room.
+
+```python
+chatrooms.leave_room(room_name)
+```
+
+<ParamField path="room_name" type="str" required>
+  Name of the room to leave
+</ParamField>
+
+#### get_joined_rooms()
+
+Returns list of currently joined rooms.
+
+```python
+joined_rooms = chatrooms.get_joined_rooms()
+```
+
+<ResponseField name="rooms" type="list">
+  List of room names currently joined
+</ResponseField>
+
+#### is_joined()
+
+Checks if currently in a room.
+
+```python
+is_in_room = chatrooms.is_joined("Music")
+```
+
+<ResponseField name="joined" type="bool">
+  True if currently in the room
+</ResponseField>
+
+### Message Methods
+
+#### send_message()
+
+Sends a message to a chat room.
+
+```python
+chatrooms.send_message(room_name, message)
+```
+
+<ParamField path="room_name" type="str" required>
+  Name of the room
+</ParamField>
+
+<ParamField path="message" type="str" required>
+  Message text to send
+</ParamField>
+
+```python
+# Send a message
+chatrooms.send_message("Music", "Anyone have recommendations for jazz albums?")
+```
+
+#### send_me_action()
+
+Sends an action message (like "/me" in IRC).
+
+```python
+chatrooms.send_me_action(room_name, action)
+```
+
+<ParamField path="room_name" type="str" required>
+  Name of the room
+</ParamField>
+
+<ParamField path="action" type="str" required>
+  Action text to send
+</ParamField>
+
+```python
+# Send action message
+chatrooms.send_me_action("Music", "is listening to jazz")
+```
+
+### Room Information
+
+#### get_room_users()
+
+Returns users in a room.
+
+```python
+users = chatrooms.get_room_users(room_name)
+```
+
+<ParamField path="room_name" type="str" required>
+  Name of the room
+</ParamField>
+
+<ResponseField name="users" type="list">
+  List of usernames in the room
+</ResponseField>
+
+#### get_user_stats()
+
+Returns statistics for a user in a room.
+
+```python
+stats = chatrooms.get_user_stats(room_name, username)
+```
+
+<ResponseField name="stats" type="dict">
+  Dictionary with "avgspeed", "files", "dirs" keys
+</ResponseField>
+
+```python
+stats = chatrooms.get_user_stats("Music", "user123")
+print(f"Files: {stats['files']}")
+print(f"Speed: {stats['avgspeed']} KB/s")
+```
+
+#### get_user_status()
+
+Returns a user's status in a room.
+
+```python
+status = chatrooms.get_user_status(room_name, username)
+```
+
+<ResponseField name="status" type="int">
+  Status code: 0=offline, 1=away, 2=online
+</ResponseField>
+
+### Room List
+
+#### request_room_list()
+
+Requests list of available rooms from server.
+
+```python
+chatrooms.request_room_list()
+```
+
+#### get_room_list()
+
+Returns cached list of available rooms.
+
+```python
+rooms = chatrooms.get_room_list()
+```
+
+<ResponseField name="rooms" type="list">
+  List of tuples: (room_name, num_users)
+</ResponseField>
+
+```python
+# Get and display room list
+rooms = chatrooms.get_room_list()
+for room_name, num_users in rooms:
+    print(f"{room_name}: {num_users} users")
+```
+
+### Tickers
+
+#### set_ticker()
+
+Sets your ticker message in a room.
+
+```python
+chatrooms.set_ticker(room_name, ticker_message)
+```
+
+<ParamField path="room_name" type="str" required>
+  Name of the room
+</ParamField>
+
+<ParamField path="ticker_message" type="str" required>
+  Ticker text to display
+</ParamField>
+
+```python
+# Set ticker
+chatrooms.set_ticker("Music", "Check out my collection!")
+```
+
+#### get_tickers()
+
+Returns ticker messages in a room.
+
+```python
+tickers = chatrooms.get_tickers(room_name)
+```
+
+<ResponseField name="tickers" type="dict">
+  Dictionary mapping usernames to ticker messages
+</ResponseField>
+
+## PrivateChat Class
+
+### Initialization
+
+```python
+from pynicotine.privatechat import PrivateChat
+
+privatechat = PrivateChat()
+```
+
+### Messaging
+
+#### send_message()
+
+Sends a private message to a user.
+
+```python
+privatechat.send_message(username, message)
+```
+
+<ParamField path="username" type="str" required>
+  Username to send message to
+</ParamField>
+
+<ParamField path="message" type="str" required>
+  Message text
+</ParamField>
+
+```python
+# Send private message
+privatechat.send_message("user123", "Hey, thanks for sharing those files!")
+```
+
+#### send_me_action()
+
+Sends an action message privately.
+
+```python
+privatechat.send_me_action(username, action)
+```
+
+<ParamField path="username" type="str" required>
+  Username to send to
+</ParamField>
+
+<ParamField path="action" type="str" required>
+  Action text
+</ParamField>
+
+### Conversation Management
+
+#### get_users()
+
+Returns list of users you have private conversations with.
+
+```python
+users = privatechat.get_users()
+```
+
+<ResponseField name="users" type="list">
+  List of usernames
+</ResponseField>
+
+#### get_messages()
+
+Returns message history with a user.
+
+```python
+messages = privatechat.get_messages(username)
+```
+
+<ParamField path="username" type="str" required>
+  Username to get messages for
+</ParamField>
+
+<ResponseField name="messages" type="list">
+  List of message dictionaries
+</ResponseField>
+
+#### clear_messages()
+
+Clears message history with a user.
+
+```python
+privatechat.clear_messages(username)
+```
+
+## Events
+
+The Chat module emits events for incoming messages and room activity:
+
+```python
+from pynicotine.events import events
+
+# Room message received
+events.connect("room-message", on_room_message)
+
+# Private message received
+events.connect("private-message", on_private_message)
+
+# User joined room
+events.connect("user-joined-room", on_user_joined)
+
+# User left room
+events.connect("user-left-room", on_user_left)
+
+def on_room_message(room_name, username, message, timestamp):
+    print(f"[{room_name}] {username}: {message}")
+
+def on_private_message(username, message, timestamp):
+    print(f"[PM from {username}] {message}")
+    
+    # Auto-reply example
+    if "thanks" in message.lower():
+        privatechat.send_message(username, "You're welcome!")
+
+def on_user_joined(room_name, username):
+    print(f"{username} joined {room_name}")
+
+def on_user_left(room_name, username):
+    print(f"{username} left {room_name}")
+```
+
+## Complete Example
+
+```python
+from pynicotine.chatrooms import ChatRooms
+from pynicotine.privatechat import PrivateChat
+from pynicotine.events import events
+from pynicotine.core import core
+
+# Initialize chat modules
+chatrooms = ChatRooms()
+privatechat = PrivateChat()
+
+# Track room activity
+room_messages = {}
+
+def on_room_message(room_name, username, message, timestamp):
+    if room_name not in room_messages:
+        room_messages[room_name] = []
+    
+    room_messages[room_name].append({
+        'username': username,
+        'message': message,
+        'timestamp': timestamp
+    })
+    
+    print(f"[{room_name}] {username}: {message}")
+    
+    # Respond to mentions
+    if core.login_username in message:
+        chatrooms.send_message(
+            room_name,
+            f"{username}: Yes, I'm here!"
+        )
+
+def on_private_message(username, message, timestamp):
+    print(f"[PM from {username}] {message}")
+    
+    # Auto-responder
+    if message.lower() == "hi":
+        privatechat.send_message(username, "Hello! How can I help?")
+
+def on_user_joined(room_name, username):
+    # Welcome new users
+    chatrooms.send_message(room_name, f"Welcome, {username}!")
+    
+    # Get user stats
+    stats = chatrooms.get_user_stats(room_name, username)
+    print(f"{username} has {stats['files']} files shared")
+
+# Connect events
+events.connect("room-message", on_room_message)
+events.connect("private-message", on_private_message)
+events.connect("user-joined-room", on_user_joined)
+
+# Join rooms
+chatrooms.join_room("Music")
+chatrooms.join_room("Jazz")
+chatrooms.join_room("Electronic")
+
+# Set ticker
+chatrooms.set_ticker("Music", "Sharing 10,000+ FLAC albums!")
+
+# Send messages
+chatrooms.send_message("Music", "Hello everyone!")
+chatrooms.send_me_action("Music", "is ready to chat")
+
+# Get room info
+joined = chatrooms.get_joined_rooms()
+print(f"Joined rooms: {joined}")
+
+for room in joined:
+    users = chatrooms.get_room_users(room)
+    print(f"{room}: {len(users)} users online")
+
+# Send private message
+privatechat.send_message("friend123", "Hey, want to trade music?")
+
+# List room activity
+rooms = chatrooms.get_room_list()
+print("\nAvailable rooms:")
+for room_name, num_users in sorted(rooms, key=lambda x: x[1], reverse=True)[:10]:
+    print(f"  {room_name}: {num_users} users")
+```
+
+## Chat Commands
+
+Many chat applications support special commands:
+
+```python
+def process_chat_command(room_name, command):
+    """Process slash commands in chat"""
+    if command.startswith("/me "):
+        action = command[4:]
+        chatrooms.send_me_action(room_name, action)
+    
+    elif command.startswith("/join "):
+        new_room = command[6:]
+        chatrooms.join_room(new_room)
+    
+    elif command.startswith("/part") or command.startswith("/leave"):
+        chatrooms.leave_room(room_name)
+    
+    elif command == "/users":
+        users = chatrooms.get_room_users(room_name)
+        print(f"Users in {room_name}: {', '.join(users)}")
+    
+    elif command == "/rooms":
+        rooms = chatrooms.get_room_list()
+        for name, count in rooms[:20]:
+            print(f"{name} ({count})")
+    
+    else:
+        chatrooms.send_message(room_name, command)
+
+# Usage
+process_chat_command("Music", "Hello everyone!")
+process_chat_command("Music", "/me is listening to jazz")
+process_chat_command("Music", "/users")
+```
+
+## Best Practices
+
+<Note>
+  - Join relevant rooms to find content and connect with users
+  - Use tickers to advertise your shares
+  - Be respectful and follow room rules
+  - Handle incoming messages asynchronously to avoid blocking
+  - Store message history for conversation context
+  - Implement rate limiting to avoid flooding
+  - Use private messages for one-on-one conversations
+  - Monitor room lists to discover active communities
+</Note>

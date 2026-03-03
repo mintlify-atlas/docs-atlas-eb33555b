@@ -1,0 +1,347 @@
+---
+title: Search
+description: Find and download files using Nicotine+'s powerful search features
+---
+
+Nicotine+ provides comprehensive search functionality to help you find files across the Soulseek network. You can perform different types of searches and use advanced query syntax to refine your results.
+
+## Search Modes
+
+Nicotine+ supports multiple search modes to find files:
+
+<Tabs>
+  <Tab title="Global Search">
+    Searches across all users on the Soulseek network.
+    
+    **Best for**: Finding popular files, discovering new content
+    
+    **Note**: Results depend on server availability and network connectivity
+  </Tab>
+  
+  <Tab title="Room Search">
+    Searches only users in a specific chat room.
+    
+    **Best for**: Finding files from users in a niche community
+    
+    **Usage**: Select a room from the dropdown before searching
+  </Tab>
+  
+  <Tab title="Buddy Search">
+    Searches only your buddies' shared files.
+    
+    **Best for**: Finding files from trusted sources
+    
+    **Note**: Only buddies currently online will be searched
+  </Tab>
+  
+  <Tab title="User Search">
+    Searches a specific user's shares.
+    
+    **Best for**: Browsing a particular user's collection
+    
+    **Usage**: Enter username before performing search
+  </Tab>
+  
+  <Tab title="Wishlist Search">
+    Automatic periodic searches for desired items.
+    
+    **Best for**: Finding rare files over time
+    
+    **Note**: Searches run at server-defined intervals
+  </Tab>
+</Tabs>
+
+## Search Query Syntax
+
+Nicotine+ supports advanced search operators:
+
+### Basic Search
+
+```
+flac jazz          - Find files containing both "flac" and "jazz"
+"miles davis"      - Search for exact phrase
+```
+
+### Excluded Words
+
+```
+flac -live         - Find FLAC files, exclude live recordings
+jazz -compilation  - Jazz music, no compilations
+```
+
+<Info>
+Use the minus sign (`-`) before a word to exclude it from results.
+</Info>
+
+### Partial Matching
+
+```
+*trance           - Find files ending in "trance" (e.g., "psytrance")
+remix*            - Not supported (must be at the end)
+```
+
+<Warning>
+Partial matching with `*` only works at the beginning of words, not the end.
+</Warning>
+
+### Combining Operators
+
+```
+"drum and bass" flac -live    - Exact phrase, specific format, exclude live
+*techno 320 -compilation      - Partial match, specific bitrate, no compilations
+```
+
+## Search Process
+
+<Steps>
+  <Step title="Enter Search Term">
+    Type your query using the syntax above. Special characters like `!`, `@`, `#`, etc. are automatically removed.
+  </Step>
+  
+  <Step title="Select Search Mode">
+    Choose global, room, buddy, or user search based on your needs.
+  </Step>
+  
+  <Step title="Execute Search">
+    Press Enter or click the Search button. Nicotine+ will:
+    - Sanitize your search term
+    - Generate a unique search token
+    - Send the request to the network
+    - Begin collecting results
+  </Step>
+  
+  <Step title="Browse Results">
+    Results appear in real-time as users respond. You can:
+    - Sort by username, file size, speed, queue length
+    - Filter results using custom criteria
+    - Download individual files or entire folders
+  </Step>
+</Steps>
+
+## Search History
+
+Nicotine+ maintains a history of your recent searches:
+
+<Accordion title="Managing Search History">
+  - **Automatic saving**: Last 200 searches are stored
+  - **Quick access**: Use dropdown to repeat previous searches
+  - **Clear history**: Disable in preferences or clear manually
+  - **Privacy**: Disable history in preferences if desired
+</Accordion>
+
+<Note>
+Search history is stored locally and never shared with other users.
+</Note>
+
+## Wishlist Searches
+
+Wishlist searches run automatically at intervals set by the server:
+
+### Adding to Wishlist
+
+<Steps>
+  <Step title="Create Wishlist Item">
+    Right-click a search tab and select "Add to Wishlist" or use the wishlist manager.
+  </Step>
+  
+  <Step title="Configure Filters">
+    Set custom filters for wishlist items:
+    - Minimum/maximum file size
+    - Bitrate requirements
+    - Country restrictions
+    - File type filters
+    - Free slot requirements
+  </Step>
+  
+  <Step title="Enable Auto-Search">
+    Toggle automatic searching for each wishlist item. Disabled items remain in the list but don't search.
+  </Step>
+</Steps>
+
+### Wishlist Features
+
+<Tabs>
+  <Tab title="Custom Filters">
+    Apply advanced filters to wishlist results:
+    
+    **Filter In**: Only show results containing specific text
+    
+    **Filter Out**: Exclude results with certain text
+    
+    **Size**: Minimum and maximum file size limits
+    
+    **Bitrate**: Audio quality requirements
+    
+    **Free Slot**: Only show users with free upload slots
+    
+    **Country**: Geographic restrictions
+    
+    **File Type**: Limit to specific extensions
+    
+    **Length**: Audio duration requirements
+  </Tab>
+  
+  <Tab title="Ignore Users">
+    Block specific users from appearing in wishlist results:
+    
+    - Right-click a result and select "Ignore"
+    - Ignored users are saved per wishlist item
+    - Manage ignored users in wishlist settings
+  </Tab>
+  
+  <Tab title="Search Interval">
+    The server determines how often wishlist searches run:
+    
+    - Typically 90-120 minutes between searches
+    - Interval displayed in status bar
+    - One wishlist item searched per interval
+    - Rotation ensures all items are searched
+  </Tab>
+</Tabs>
+
+## Search Results Management
+
+### Filtering Results
+
+Refine search results using filters:
+
+```
+Filter by:
+- File size (min/max)
+- Bitrate
+- User queue status
+- User country
+- File extension
+- Upload speed
+- Free upload slots
+```
+
+### Downloading from Results
+
+<Steps>
+  <Step title="Select Files">
+    Click individual files or use Ctrl/Shift for multiple selection
+  </Step>
+  
+  <Step title="Choose Download Action">
+    - **Download**: Queue selected files
+    - **Download Folder**: Download entire folder containing the file
+    - **Download All**: Queue all results from selected user
+  </Step>
+  
+  <Step title="Monitor Progress">
+    Downloads appear in the Downloads tab with queue position and status
+  </Step>
+</Steps>
+
+## Search Response Configuration
+
+Control how you respond to search requests from others:
+
+<Info>
+**Enable/Disable Responses**: Toggle whether you respond to searches
+
+**Minimum Characters**: Set minimum search term length (default: 3)
+
+**Maximum Results**: Limit results per search (default: 50)
+
+**Response Speed**: Balance between thoroughness and performance
+</Info>
+
+### Performance Optimization
+
+<Tip>
+**For faster searches**:
+- Use specific terms (avoid single common words)
+- Combine multiple search terms
+- Use excluded words to narrow results
+- Search specific rooms instead of global
+
+**For more results**:
+- Use broader terms
+- Avoid overly specific phrases
+- Search during peak hours
+- Try both global and room searches
+</Tip>
+
+## Excluded Search Phrases
+
+The server may provide a list of prohibited search terms:
+
+<Warning>
+Files matching excluded phrases won't appear in search results, even if they're in your shares. This is enforced by the server.
+</Warning>
+
+## Search Statistics
+
+Nicotine+ tracks search activity:
+
+- Number of searches performed
+- Searches received from other users
+- Results provided to others
+- Popular search terms (in logs)
+
+## Advanced Features
+
+### Word Index
+
+Nicotine+ builds a word index of your shares for fast searching:
+
+<Accordion title="How the Word Index Works">
+  1. **Tokenization**: File and folder names are split into words
+  2. **Normalization**: Punctuation removed, converted to lowercase
+  3. **Indexing**: Each word mapped to file indices
+  4. **Intersection**: Search terms combined using set operations
+  5. **Retrieval**: Matching files returned with full metadata
+</Accordion>
+
+### Search Algorithm
+
+When processing search requests:
+
+<Steps>
+  <Step title="Parse Query">
+    Split search term into included, excluded, and partial words
+  </Step>
+  
+  <Step title="Index Lookup">
+    Find all files matching included words using word index
+  </Step>
+  
+  <Step title="Filter Results">
+    Remove files matching excluded words and apply partial word filters
+  </Step>
+  
+  <Step title="Apply Limits">
+    Respect maximum results setting and user permissions
+  </Step>
+  
+  <Step title="Return Response">
+    Send compressed file list to requesting user
+  </Step>
+</Steps>
+
+## Troubleshooting
+
+### No Search Results
+
+1. Check network connectivity
+2. Verify search term isn't too specific
+3. Try different search modes (global vs. room)
+4. Ensure you're connected to the server
+5. Check if search term contains excluded phrases
+
+### Slow Search Responses
+
+- Server congestion during peak hours
+- Network latency issues
+- Large share database (optimize with filters)
+- Insufficient system resources
+
+### Missing Expected Results
+
+- User may be offline
+- Files not shared at appropriate permission level
+- Search filters too restrictive
+- Files match excluded search phrases
+- User has you ignored/blocked

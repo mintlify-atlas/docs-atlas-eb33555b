@@ -1,0 +1,506 @@
+---
+title: Downloads & Uploads
+description: Manage file transfers including downloads, uploads, and queue management
+---
+
+Nicotine+ provides comprehensive file transfer management with support for queuing, resuming, and bandwidth control.
+
+## Downloads
+
+### Starting Downloads
+
+You can initiate downloads from multiple sources:
+
+<Tabs>
+  <Tab title="Search Results">
+    1. Perform a search using the Search tab
+    2. Select desired files from results
+    3. Click "Download" or press Enter
+    4. Files are added to the download queue
+  </Tab>
+  
+  <Tab title="User Browse">
+    1. Browse a user's shared files
+    2. Navigate to desired folders
+    3. Right-click and select "Download Folder" or "Download Files"
+    4. Entire folder structures can be downloaded
+  </Tab>
+  
+  <Tab title="Direct Request">
+    1. Right-click a user
+    2. Select "Download from User"
+    3. Enter file path manually (advanced)
+  </Tab>
+</Tabs>
+
+### Download Process
+
+<Steps>
+  <Step title="Queue File">
+    When you request a download:
+    - Download is validated against filters
+    - File is checked for duplicate
+    - QueueUpload message sent to user
+    - Status set to "Queued" or "Paused"
+  </Step>
+  
+  <Step title="Wait in Queue">
+    Your download waits for:
+    - User to accept your queue request
+    - Your position in their upload queue
+    - User's upload slots to become available
+    - Network connectivity to be established
+  </Step>
+  
+  <Step title="Transfer Begins">
+    When your turn arrives:
+    - User sends TransferRequest
+    - File connection is established
+    - Download starts from byte offset (for resume)
+    - Progress updates in real-time
+  </Step>
+  
+  <Step title="File Completion">
+    After transfer completes:
+    - File moved from incomplete to download folder
+    - Completion notification displayed
+    - After-finish command executed (if configured)
+    - Statistics updated
+  </Step>
+</Steps>
+
+### Download States
+
+Downloads can be in various states:
+
+<Accordion title="Download Status Meanings">
+  **Queued**: Waiting in the remote user's upload queue
+  
+  **Transferring**: Actively downloading
+  
+  **Paused**: Manually paused by you
+  
+  **Finished**: Transfer completed successfully
+  
+  **Filtered**: Blocked by download filter
+  
+  **User Logged Off**: Remote user is offline
+  
+  **Connection Closed**: Network connection failed
+  
+  **Connection Timeout**: Remote user didn't respond
+  
+  **File Not Shared**: File no longer in user's shares
+  
+  **Cancelled**: User rejected your download request
+  
+  **Download Folder Error**: Can't write to download folder
+  
+  **Local File Error**: File I/O error during transfer
+</Accordion>
+
+### Download Management
+
+<Tabs>
+  <Tab title="Queue Actions">
+    Right-click downloads to:
+    
+    **Retry**: Re-queue failed downloads
+    
+    **Pause**: Temporarily stop download
+    
+    **Abort**: Cancel download and remove from queue
+    
+    **Clear**: Remove finished/failed downloads from list
+    
+    **Browse User**: View the user's shared files
+    
+    **Send Message**: Open private chat with user
+  </Tab>
+  
+  <Tab title="Folder Actions">
+    Manage download folders:
+    
+    **Set Download Folder**: Choose destination per-file or per-folder
+    
+    **Open Folder**: Browse to download location
+    
+    **Username Subfolders**: Automatically organize by user
+    
+    **Folder Completion**: Run scripts when folders finish
+  </Tab>
+  
+  <Tab title="Advanced Options">
+    **Resume Support**: Automatically resume interrupted downloads
+    
+    **Retry Failed**: Auto-retry connection/I/O errors
+    
+    **Clear Finished**: Auto-remove completed downloads
+    
+    **Queue Position**: Request your position every 5 minutes
+  </Tab>
+</Tabs>
+
+## Download Filters
+
+Prevent unwanted downloads using filters:
+
+### Creating Filters
+
+<Steps>
+  <Step title="Open Filter Settings">
+    Navigate to Preferences > Downloads > Filters
+  </Step>
+  
+  <Step title="Add Filter Pattern">
+    Enter filter patterns using wildcards:
+    ```
+    *.exe          - Block executable files
+    *.rar          - Block RAR archives  
+    *virus*        - Block files with "virus" in name
+    ```
+  </Step>
+  
+  <Step title="Set Filter Type">
+    Choose between:
+    - **Escaped**: Treat pattern literally with wildcards
+    - **Regex**: Use regular expression (advanced)
+  </Step>
+  
+  <Step title="Enable Filters">
+    Toggle "Enable Download Filters" to activate
+  </Step>
+</Steps>
+
+<Warning>
+Filtered downloads are automatically blocked. You can bypass filters by selecting a single filtered download and clicking Retry.
+</Warning>
+
+## Uploads
+
+### Upload Queue System
+
+Nicotine+ manages uploads using a sophisticated queue:
+
+<Info>
+**FIFO Queue**: First-in, first-out order
+
+**Round Robin**: Rotate between users fairly
+
+**Privileged Users**: Priority for privileged/prioritized users
+</Info>
+
+### Upload Process
+
+<Steps>
+  <Step title="Receive Request">
+    When a user requests a file:
+    - Permission level checked (banned, buddy, public)
+    - File availability verified
+    - Queue limits checked
+    - QueueUpload or TransferRequest processed
+  </Step>
+  
+  <Step title="Queue Management">
+    Upload enters queue based on:
+    - User privilege status
+    - Current queue size
+    - Upload slot availability
+    - Bandwidth limits
+  </Step>
+  
+  <Step title="Transfer Start">
+    When slot becomes available:
+    - TransferRequest sent to downloader
+    - File connection established
+    - Upload begins from requested offset
+    - Speed limited per configuration
+  </Step>
+  
+  <Step title="Completion">
+    After upload finishes:
+    - Upload speed reported to server
+    - Statistics updated
+    - Next queued upload starts automatically
+  </Step>
+</Steps>
+
+### Upload Limits
+
+Control upload behavior with limits:
+
+<Tabs>
+  <Tab title="Slot Limits">
+    **Upload Slots**: Maximum simultaneous uploads
+    
+    **Default**: 2 slots
+    
+    **Behavior**: New uploads wait for free slots
+    
+    **Note**: Privileged users can bypass some limits
+  </Tab>
+  
+  <Tab title="Queue Limits">
+    **File Limit**: Max files per user in queue
+    
+    **Queue Size Limit**: Max megabytes per user
+    
+    **Exemptions**: Buddies can bypass limits if configured
+  </Tab>
+  
+  <Tab title="Speed Limits">
+    **Upload Bandwidth**: Total KB/s limit
+    
+    **Per-Transfer**: Automatic division among active uploads
+    
+    **Alternative Limit**: Switch between two preset limits
+    
+    **Limit By**: Total bandwidth or per-transfer
+  </Tab>
+</Tabs>
+
+### Upload States
+
+<Accordion title="Upload Status Meanings">
+  **Queued**: Waiting for upload slot
+  
+  **Transferring**: Actively uploading
+  
+  **Finished**: Transfer completed
+  
+  **Cancelled**: Stopped by you or downloader
+  
+  **User Logged Off**: Downloader disconnected
+  
+  **Connection Timeout**: Downloader didn't respond
+  
+  **File Not Shared**: File removed from shares
+  
+  **File Read Error**: Can't read file from disk
+  
+  **Banned**: User is banned from downloading
+</Accordion>
+
+## Queue Position
+
+Understand how queue positions work:
+
+### For Downloads
+
+Your position is determined by:
+1. User's queue system (FIFO or Round Robin)
+2. Whether you're a privileged user
+3. How long you've been queued
+4. Number of other users queued
+
+<Note>
+Nicotine+ automatically requests your queue position every 5 minutes.
+</Note>
+
+### For Uploads
+
+You determine positions for others based on:
+
+<Steps>
+  <Step title="Queue Mode Selection">
+    Choose between:
+    - **FIFO**: First request gets first upload
+    - **Round Robin**: Cycle between users fairly
+  </Step>
+  
+  <Step title="Privilege Handling">
+    Privileged users get priority:
+    - Privileged server users (donated)
+    - Prioritized buddies (your setting)
+    - Regular users
+  </Step>
+  
+  <Step title="Position Calculation">
+    Position updates when:
+    - New uploads queued
+    - Uploads complete
+    - Users request position update
+  </Step>
+</Steps>
+
+## Transfer Performance
+
+### Bandwidth Management
+
+<Tip>
+**Optimize Transfer Speed**:
+
+**For Downloads**:
+- Set appropriate download speed limit
+- Close bandwidth-heavy applications
+- Use wired connection when possible
+- Increase upload slots to improve reciprocity
+
+**For Uploads**:
+- Balance slot count vs. speed per transfer
+- Use per-transfer limits for fairness
+- Monitor actual upload capacity
+- Don't set limits too low (affects reciprocity)
+</Tip>
+
+### Resume Support
+
+Both downloads and uploads support resuming:
+
+<Steps>
+  <Step title="Interruption Handling">
+    If a transfer is interrupted:
+    - Current byte offset is saved
+    - Incomplete file remains in temp folder
+    - Transfer marked with appropriate status
+  </Step>
+  
+  <Step title="Automatic Retry">
+    Nicotine+ automatically retries:
+    - Connection failures (every 3 minutes)
+    - I/O errors (every 15 minutes)
+    - User logged off (when user returns)
+  </Step>
+  
+  <Step title="Resume Transfer">
+    When resuming:
+    - FileOffset message sent with byte position
+    - Transfer continues from last position
+    - No data is re-downloaded
+  </Step>
+</Steps>
+
+## Download Destinations
+
+Configure where files are saved:
+
+<Tabs>
+  <Tab title="Default Folder">
+    Set in Preferences > Downloads:
+    
+    - Main download directory
+    - Used when no custom folder specified
+    - Supports environment variables
+    - Can create username subfolders
+  </Tab>
+  
+  <Tab title="Incomplete Folder">
+    Temporary storage during downloads:
+    
+    - Files saved here during transfer
+    - Moved to download folder when complete
+    - Can be same as download folder
+    - Cleaned up automatically
+  </Tab>
+  
+  <Tab title="Custom Folders">
+    Per-download destinations:
+    
+    - Right-click download
+    - Select "Set Download Folder"
+    - Choose custom location
+    - Entire folder downloaded there
+  </Tab>
+</Tabs>
+
+## After-Completion Actions
+
+Run scripts when transfers complete:
+
+### File Completion
+
+```bash
+# Linux/Mac example
+/path/to/script.sh "$@"
+
+# Windows example
+C:\Scripts\process.bat "%@"
+```
+
+<Info>
+The `%@` or `$@` variable contains the full path to the downloaded file.
+</Info>
+
+### Folder Completion
+
+Separate command runs when all files in a folder finish:
+
+```bash
+# Extract archives automatically
+unzip "$@"/*.zip
+
+# Move to media library  
+mv "$@" /media/library/
+```
+
+## Remote Downloads
+
+Accept files sent directly by other users:
+
+<Warning>
+**Security Consideration**: Remote downloads allow others to send you arbitrary files. Configure carefully:
+
+- Disable entirely (recommended)
+- Only allow from buddies
+- Only allow from trusted buddies
+
+Files are saved to a separate "Received" folder.
+</Warning>
+
+## Shutdown After Uploads
+
+Schedule Nicotine+ to quit after uploads finish:
+
+<Steps>
+  <Step title="Enable Shutdown Mode">
+    File > Quit After Uploads
+  </Step>
+  
+  <Step title="Continue Normal Operation">
+    Uploads continue normally
+  </Step>
+  
+  <Step title="Automatic Exit">
+    When upload queue empties, Nicotine+ exits
+  </Step>
+</Steps>
+
+<Note>
+New upload requests are rejected with "Pending Shutdown" status.
+</Note>
+
+## Transfer Statistics
+
+Nicotine+ tracks detailed statistics:
+
+- Total downloaded/uploaded bytes
+- Number of completed transfers  
+- Average upload speed (reported to server)
+- Transfer success/failure rates
+- Active transfer count
+
+## Troubleshooting
+
+### Downloads Not Starting
+
+1. Check you're not at queue limit for that user
+2. Verify user is online and responding
+3. Ensure file still exists in their shares
+4. Check download filters aren't blocking
+5. Verify download folder is writable
+
+### Slow Transfer Speeds
+
+- Remote user's upload bandwidth limit
+- Your download bandwidth limit
+- Network congestion
+- Firewall/NAT issues
+- Too many simultaneous transfers
+
+### Uploads Not Processing
+
+1. Check upload slots aren't full
+2. Verify bandwidth limit allows transfers
+3. Ensure shares are initialized
+4. Check file still exists and is readable
+5. Verify remote user can connect

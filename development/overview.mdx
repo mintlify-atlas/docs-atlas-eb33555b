@@ -1,0 +1,133 @@
+---
+title: Development Overview
+description: Get involved with Nicotine+ development and learn about the project's design philosophy and contribution workflow
+---
+
+Nicotine+ is a Python application for the Soulseek network, welcoming contributions from maintainers, developers, and code contributors. This guide provides an overview of how to get involved with development.
+
+## Language and Toolkit
+
+### Python
+
+Nicotine+ is a Python application originally based on backend code from the PySoulSeek project started in 2001. The project uses only Python in the codebase, allowing Nicotine+ to run on almost any system without compilation.
+
+<Info>
+The project aims to support the oldest [Python version](https://devguide.python.org/versions/) still receiving security updates, up to the latest. Currently, Python 3.9+ is required.
+</Info>
+
+Developing in a single language makes the project easier for everyone involved. There is no rush to bump the minimum version requirement, since LTS distributions may use older Python versions.
+
+### GTK Toolkit
+
+Nicotine+ uses GTK as its GUI toolkit, a decision that dates back to the original Nicotine project. The switch from wxPython (used by PySoulSeek) was made due to various issues at the time, such as large memory overhead and long compile/build times.
+
+<Note>
+GTK fits the project's needs, and there are no plans of switching to another toolkit. Both GTK 3 (>= 3.24.24) and GTK 4 (>= 4.6.9) are supported.
+</Note>
+
+## Design Philosophy
+
+### Keep It Simple
+
+Many applications fall into the trap of adding endless options without thinking about the bigger picture. Nicotine+ is feature-rich, but attempts to provide well-designed, well-integrated features that work out of the box.
+
+The same principle applies when writing code:
+
+- Try to simplify code as much as possible
+- Avoid overengineering
+- Write code that is maintainable and readable by humans
+
+### Dependency Management
+
+Nicotine+ aims to be as portable as possible, providing access to the Soulseek network for people who cannot run the official Soulseek client. The application runs on almost any architecture and system available.
+
+<Warning>
+Introducing an external software dependency can be an inconvenience for both packagers and users. Carefully consider whether a new dependency is necessary.
+</Warning>
+
+When considering dependencies:
+
+- **Prefer Python Standard Library** - Use modules included in the standard library whenever possible
+- **Avoid "convenient" dependencies** - If the standard library includes the required functionality, use it
+- **Prefer pure-Python dependencies** - These are easier to install and more likely to work on less common systems
+- **Consider bundling** - Small, self-contained dependencies can be bundled with proper attribution (but not security-critical or rapidly changing dependencies)
+
+See the [Setup](/development/setup) page for the current list of dependencies.
+
+## Performance
+
+Profiling code changes is important to ensure that Nicotine+ performs well and uses fewer system resources. The goal is to develop a lightweight client that runs well on older hardware and small servers.
+
+### Performance Best Practices
+
+Due to Python's interpreted nature, addressing performance issues can be a challenge. These points generally help:
+
+<Steps>
+  <Step title="Use efficient data structures">
+    Use dictionaries and sets for faster membership checks (O(1)) compared to lists (O(n))
+  </Step>
+  
+  <Step title="Leverage the standard library">
+    Parts of the standard library are written in C and perform better than pure-Python counterparts, especially in hot code paths
+  </Step>
+  
+  <Step title="Explore alternatives">
+    Look for alternative ways of accomplishing a task and measure the performance
+  </Step>
+</Steps>
+
+### Profiling with py-spy
+
+[py-spy](https://github.com/benfred/py-spy) is an excellent tool for profiling in real time:
+
+```sh
+py-spy top ./nicotine
+```
+
+The console will continuously display a top-like view of functions consuming CPU:
+
+- Press `L` to aggregate by line number
+- Press `R` to reset the view
+
+## Debug Logging
+
+Verbose logging can be enabled to ease debugging. The following log categories are available:
+
+- **Connections** - Logging related to networking (`slskproto.py`)
+- **Messages** - Incoming and outgoing protocol messages (`slskmessages.py`)
+- **Transfers** - Logging related to file transfers (`transfers.py`)
+- **Miscellaneous** - General debug log messages
+
+### Enabling Debug Logging
+
+<Steps>
+  <Step title="Show the log pane">
+    Click the ellipsis icon in the bottom right corner of the main window to show the log pane
+  </Step>
+  
+  <Step title="Enable log categories">
+    Right-click the log pane to show the context menu. Enable the log categories you need in the `Log Categories` submenu
+  </Step>
+  
+  <Step title="Log to file (optional)">
+    To log debug messages to file: `Menu -> Preferences -> Logging -> Log debug messages to file`
+  </Step>
+</Steps>
+
+<Warning>
+Remember to disable debug logging when you no longer need it, since it impacts performance.
+</Warning>
+
+## Soulseek Protocol
+
+The Soulseek network uses its own protocol for interoperability between clients. The protocol is proprietary, and no official documentation is available.
+
+Nicotine+'s protocol implementation is developed by observing the behavior of the official Soulseek NS and SoulseekQt clients. The team maintains unofficial documentation in `SLSKPROTOCOL.md`.
+
+## Getting Started
+
+Ready to contribute? Continue to the next sections:
+
+- [Setup](/development/setup) - Set up your development environment
+- [Architecture](/development/architecture) - Understand the project structure
+- [Testing](/development/testing) - Run tests and validate your changes

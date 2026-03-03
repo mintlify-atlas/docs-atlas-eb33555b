@@ -1,0 +1,309 @@
+---
+title: 'Shares'
+description: 'Manage shared files and folders in Nicotine+'
+---
+
+The `Shares` class manages file sharing functionality, including scanning shared folders, building file indexes, and handling share requests.
+
+## Overview
+
+The Shares module is responsible for:
+- Scanning and indexing shared folders
+- Managing shared file databases
+- Handling file search queries
+- Computing share statistics
+- Processing buddy-only shares
+
+## Shares Class
+
+### Initialization
+
+```python
+from pynicotine.shares import Shares
+
+shares = Shares()
+```
+
+### Core Methods
+
+#### rescan_shares()
+
+Rescans all shared folders and rebuilds the file index.
+
+```python
+shares.rescan_shares()
+```
+
+<ParamField path="init" type="bool" default="False">
+  Whether this is an initial scan on startup
+</ParamField>
+
+<ParamField path="force" type="bool" default="False">
+  Force rescan even if shares haven't changed
+</ParamField>
+
+<Note>
+  Rescanning can take significant time for large share collections. The scan runs in a separate thread to avoid blocking.
+</Note>
+
+#### convert_shares()
+
+Converts shared folder paths to the internal format.
+
+```python
+shares.convert_shares(shared_folders)
+```
+
+<ParamField path="shared_folders" type="list" required>
+  List of folder paths to convert
+</ParamField>
+
+<ResponseField name="virtual_name" type="str">
+  The virtual name for the shared folder
+</ResponseField>
+
+<ResponseField name="actual_path" type="str">
+  The actual filesystem path
+</ResponseField>
+
+#### get_shared_folders()
+
+Returns the list of currently shared folders.
+
+```python
+folders = shares.get_shared_folders()
+```
+
+<ResponseField name="folders" type="list">
+  List of tuples containing (virtual_name, actual_path)
+</ResponseField>
+
+#### get_compressed_shares_message()
+
+Generates a compressed representation of shared files for sending to peers.
+
+```python
+compressed_shares = shares.get_compressed_shares_message(share_type)
+```
+
+<ParamField path="share_type" type="str" required>
+  Type of shares: "normal" or "buddy"
+</ParamField>
+
+<ResponseField name="message" type="SharedFileList">
+  Compressed file list message ready to send
+</ResponseField>
+
+### Search Methods
+
+#### search_files()
+
+Searches shared files for a given query.
+
+```python
+results = shares.search_files(search_term, max_results=50)
+```
+
+<ParamField path="search_term" type="str" required>
+  The search query string
+</ParamField>
+
+<ParamField path="max_results" type="int" default="50">
+  Maximum number of results to return
+</ParamField>
+
+<ParamField path="mode" type="int" default="0">
+  Search mode: 0=global, 1=buddy, 2=rooms, 3=user
+</ParamField>
+
+<ParamField path="excluded_words" type="set">
+  Set of words to exclude from results
+</ParamField>
+
+<ResponseField name="results" type="list">
+  List of matching files with metadata
+</ResponseField>
+
+```python
+# Example: Search for audio files
+results = shares.search_files("electronic music mp3", max_results=100)
+
+for result in results:
+    print(f"File: {result['file']}")
+    print(f"Size: {result['size']} bytes")
+    print(f"Bitrate: {result.get('bitrate', 'N/A')}")
+```
+
+#### file_is_shared()
+
+Checks if a specific file is shared.
+
+```python
+is_shared = shares.file_is_shared(username, virtual_path)
+```
+
+<ParamField path="username" type="str" required>
+  Username requesting the file
+</ParamField>
+
+<ParamField path="virtual_path" type="str" required>
+  Virtual path of the file
+</ParamField>
+
+<ResponseField name="shared" type="bool">
+  True if file is shared and accessible to the user
+</ResponseField>
+
+### Statistics Methods
+
+#### get_num_shared_folders()
+
+Returns the number of shared folders.
+
+```python
+num_folders = shares.get_num_shared_folders()
+```
+
+#### get_num_shared_files()
+
+Returns the total number of shared files.
+
+```python
+num_files = shares.get_num_shared_files()
+```
+
+#### get_compressed_shares_size()
+
+Returns the size of the compressed shares database.
+
+```python
+size = shares.get_compressed_shares_size(share_type)
+```
+
+<ParamField path="share_type" type="str" required>
+  Type of shares: "normal" or "buddy"
+</ParamField>
+
+## Share Configuration
+
+### Shared Folder Structure
+
+Shared folders are configured as tuples:
+
+```python
+shared_folders = [
+    ("Music", "/home/user/Music"),
+    ("Documents", "/home/user/Documents"),
+    ("Videos", "/home/user/Videos")
+]
+
+config.sections["transfers"]["shared"] = shared_folders
+shares.rescan_shares(init=True)
+```
+
+### Buddy Shares
+
+Buddy-only shares are only accessible to users on your buddy list:
+
+```python
+buddy_shared_folders = [
+    ("Private Music", "/home/user/Private/Music")
+]
+
+config.sections["transfers"]["buddyshared"] = buddy_shared_folders
+shares.rescan_shares(init=True)
+```
+
+## File Attributes
+
+The Shares module automatically extracts metadata from shared files:
+
+<Expandable title="Audio Files">
+  - **Bitrate**: Audio bitrate in kbps
+  - **Duration**: Length in seconds
+  - **Sample Rate**: Audio sample rate
+  - **Bit Depth**: Bits per sample
+  - **VBR**: Variable bitrate flag
+</Expandable>
+
+<Expandable title="Video Files">
+  - **Width**: Video width in pixels
+  - **Height**: Video height in pixels
+  - **Duration**: Length in seconds
+  - **Codec**: Video codec used
+</Expandable>
+
+<Expandable title="Image Files">
+  - **Width**: Image width in pixels
+  - **Height**: Image height in pixels
+</Expandable>
+
+## Events
+
+The Shares module emits several events during operation:
+
+```python
+# Share scan started
+events.connect("shares-scan-started", on_scan_started)
+
+# Share scan finished
+events.connect("shares-scan-finished", on_scan_finished)
+
+# Share scan progress
+events.connect("shares-scan-progress", on_scan_progress)
+
+def on_scan_started():
+    print("Share scan started...")
+
+def on_scan_finished(num_files):
+    print(f"Share scan completed: {num_files} files")
+
+def on_scan_progress(current, total):
+    print(f"Scanning: {current}/{total}")
+```
+
+## Complete Example
+
+```python
+from pynicotine.shares import Shares
+from pynicotine.config import config
+from pynicotine.events import events
+
+# Initialize shares
+shares = Shares()
+
+# Configure shared folders
+config.sections["transfers"]["shared"] = [
+    ("Music", "/home/user/Music"),
+    ("Books", "/home/user/Books")
+]
+
+# Listen for scan completion
+def on_shares_ready(num_files):
+    print(f"Shares ready: {num_files} files available")
+    
+    # Get statistics
+    folders = shares.get_num_shared_folders()
+    files = shares.get_num_shared_files()
+    print(f"Sharing {folders} folders with {files} files")
+    
+    # Search for files
+    results = shares.search_files("python programming")
+    for result in results:
+        print(f"Found: {result['file']}")
+
+events.connect("shares-scan-finished", on_shares_ready)
+
+# Start scanning
+shares.rescan_shares(init=True)
+```
+
+## Best Practices
+
+<Note>
+  - Rescan shares periodically to keep the index up to date
+  - Use buddy shares for content you only want to share with trusted users
+  - Monitor scan progress for large share collections
+  - Handle scan events to update UI progress indicators
+  - Cache search results to avoid repeated scans
+</Note>

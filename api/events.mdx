@@ -1,0 +1,301 @@
+---
+title: Events Module
+description: Event system for inter-component communication
+---
+
+The `events` module provides a centralized event system for communication between components.
+
+## Events Class
+
+Manages event subscriptions, emissions, and scheduling.
+
+### Methods
+
+#### enable()
+
+```python
+def enable(self)
+```
+
+Enables the event system and starts the scheduler thread.
+
+#### connect()
+
+```python
+def connect(self, event_name, function)
+```
+
+Subscribes a callback function to an event.
+
+<ParamField path="event_name" type="str">
+  Name of the event to subscribe to
+</ParamField>
+
+<ParamField path="function" type="callable">
+  Callback function to execute when event is emitted
+</ParamField>
+
+<CodeGroup>
+```python Example: Subscribe to Events
+from pynicotine.events import events
+
+def on_user_status(msg):
+    print(f"User {msg.user} status: {msg.status}")
+
+events.connect("user-status", on_user_status)
+```
+</CodeGroup>
+
+#### disconnect()
+
+```python
+def disconnect(self, event_name, function)
+```
+
+Unsubscribes a callback function from an event.
+
+<ParamField path="event_name" type="str">
+  Name of the event
+</ParamField>
+
+<ParamField path="function" type="callable">
+  The callback function to remove
+</ParamField>
+
+#### emit()
+
+```python
+def emit(self, event_name, *args, **kwargs)
+```
+
+Emits an event synchronously to all subscribers.
+
+<ParamField path="event_name" type="str">
+  Name of the event to emit
+</ParamField>
+
+<ParamField path="args" type="tuple">
+  Positional arguments passed to callbacks
+</ParamField>
+
+<ParamField path="kwargs" type="dict">
+  Keyword arguments passed to callbacks
+</ParamField>
+
+<CodeGroup>
+```python Example: Emit Events
+from pynicotine.events import events
+
+events.emit("user-status", username="Alice", status=2)
+```
+</CodeGroup>
+
+#### emit_main_thread()
+
+```python
+def emit_main_thread(self, event_name, *args, **kwargs)
+```
+
+Queues an event for emission in the main thread.
+
+<Note>
+Use this method when emitting events from background threads to ensure thread safety.
+</Note>
+
+#### schedule()
+
+```python
+def schedule(self, delay, callback, callback_args=None, repeat=False)
+```
+
+Schedules a callback to run after a delay.
+
+<ParamField path="delay" type="float">
+  Delay in seconds before executing callback
+</ParamField>
+
+<ParamField path="callback" type="callable">
+  Function to execute
+</ParamField>
+
+<ParamField path="callback_args" type="tuple">
+  Arguments to pass to callback
+</ParamField>
+
+<ParamField path="repeat" type="bool" default={false}>
+  Whether to repeat the callback periodically
+</ParamField>
+
+<ResponseField name="event_id" type="int">
+  Unique identifier for the scheduled event
+</ResponseField>
+
+<CodeGroup>
+```python Example: Schedule Callbacks
+from pynicotine.events import events
+
+def check_status():
+    print("Checking status...")
+
+# Run once after 5 seconds
+event_id = events.schedule(5.0, check_status)
+
+# Run every 10 seconds
+events.schedule(10.0, check_status, repeat=True)
+```
+</CodeGroup>
+
+#### cancel_scheduled()
+
+```python
+def cancel_scheduled(self, event_id)
+```
+
+Cancels a scheduled callback.
+
+<ParamField path="event_id" type="int">
+  The event ID returned by schedule()
+</ParamField>
+
+#### process_thread_events()
+
+```python
+def process_thread_events(self)
+```
+
+Processes queued thread events in the main thread. Called by the main loop.
+
+<ResponseField name="continue" type="bool">
+  Whether the main loop should continue processing
+</ResponseField>
+
+## Available Events
+
+### General Events
+
+<ParamField path="start" type="event">
+  Application startup
+</ParamField>
+
+<ParamField path="quit" type="event">
+  Application shutdown
+</ParamField>
+
+<ParamField path="setup" type="event">
+  Initial setup/configuration screen
+</ParamField>
+
+### Server Events
+
+<ParamField path="server-login" type="event">
+  Server login success or failure
+</ParamField>
+
+<ParamField path="server-disconnect" type="event">
+  Disconnected from server
+</ParamField>
+
+<ParamField path="server-reconnect" type="event">
+  Reconnecting to server
+</ParamField>
+
+### User Events
+
+<ParamField path="user-status" type="event">
+  User status changed (online/away/offline)
+</ParamField>
+
+<ParamField path="user-stats" type="event">
+  User statistics updated
+</ParamField>
+
+<ParamField path="user-country" type="event">
+  User country code determined
+</ParamField>
+
+### Chat Events
+
+<ParamField path="say-chat-room" type="event">
+  Message in chat room
+</ParamField>
+
+<ParamField path="message-user" type="event">
+  Private message sent/received
+</ParamField>
+
+<ParamField path="join-room" type="event">
+  Joined a chat room
+</ParamField>
+
+<ParamField path="leave-room" type="event">
+  Left a chat room
+</ParamField>
+
+### Search Events
+
+<ParamField path="add-search" type="event">
+  New search started
+</ParamField>
+
+<ParamField path="file-search-response" type="event">
+  Search results received
+</ParamField>
+
+### Transfer Events
+
+<ParamField path="update-download" type="event">
+  Download updated
+</ParamField>
+
+<ParamField path="update-upload" type="event">
+  Upload updated
+</ParamField>
+
+<ParamField path="file-download-progress" type="event">
+  Download progress update
+</ParamField>
+
+<ParamField path="file-upload-progress" type="event">
+  Upload progress update
+</ParamField>
+
+<CodeGroup>
+```python Example: Complete Event Usage
+from pynicotine.events import events
+
+class MyComponent:
+    def __init__(self):
+        # Subscribe to events
+        events.connect("start", self._on_start)
+        events.connect("user-status", self._on_user_status)
+        events.connect("quit", self._on_quit)
+        
+        # Schedule periodic check
+        self.timer_id = events.schedule(
+            60.0, self._periodic_check, repeat=True
+        )
+    
+    def _on_start(self):
+        print("Application started")
+    
+    def _on_user_status(self, msg):
+        print(f"User {msg.user}: {msg.status}")
+    
+    def _periodic_check(self):
+        print("Periodic check")
+    
+    def _on_quit(self):
+        # Clean up
+        events.cancel_scheduled(self.timer_id)
+        events.disconnect("start", self._on_start)
+        events.disconnect("user-status", self._on_user_status)
+```
+</CodeGroup>
+
+## Global Instance
+
+```python
+from pynicotine.events import events
+```
+
+A global `events` instance is available for import.

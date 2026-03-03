@@ -1,0 +1,286 @@
+---
+title: Network Filter
+description: User banning and IP filtering functionality
+---
+
+The `networkfilter` module provides functionality for banning users, ignoring users, and filtering by IP address or country.
+
+## NetworkFilter Class
+
+Manages user and IP-based filtering.
+
+### Attributes
+
+<ParamField path="ip_ban_requested" type="dict">
+  Pending IP ban requests
+</ParamField>
+
+<ParamField path="ip_ignore_requested" type="dict">
+  Pending IP ignore requests
+</ParamField>
+
+### Methods
+
+#### ban_user()
+
+```python
+def ban_user(self, username)
+```
+
+Bans a user by username.
+
+<ParamField path="username" type="str">
+  Username to ban
+</ParamField>
+
+<CodeGroup>
+```python Example: Ban a User
+from pynicotine.core import core
+
+core.network_filter.ban_user("spammer123")
+```
+</CodeGroup>
+
+#### unban_user()
+
+```python
+def unban_user(self, username)
+```
+
+Unbans a previously banned user.
+
+<ParamField path="username" type="str">
+  Username to unban
+</ParamField>
+
+#### is_user_banned()
+
+```python
+def is_user_banned(self, username)
+```
+
+Checks if a user is banned.
+
+<ParamField path="username" type="str">
+  Username to check
+</ParamField>
+
+<ResponseField name="banned" type="bool">
+  True if user is banned
+</ResponseField>
+
+#### ban_user_ip()
+
+```python
+def ban_user_ip(self, username=None, ip_address=None)
+```
+
+Bans a user by IP address.
+
+<ParamField path="username" type="str">
+  Username (IP will be looked up if not provided)
+</ParamField>
+
+<ParamField path="ip_address" type="str">
+  IP address to ban directly
+</ParamField>
+
+<ResponseField name="ip_address" type="str">
+  The banned IP address
+</ResponseField>
+
+#### is_user_ip_banned()
+
+```python
+def is_user_ip_banned(self, username=None, ip_address=None)
+```
+
+Checks if a user's IP is banned, including wildcard matching.
+
+<ParamField path="username" type="str">
+  Username to check
+</ParamField>
+
+<ParamField path="ip_address" type="str">
+  IP address to check
+</ParamField>
+
+<ResponseField name="banned" type="bool">
+  True if IP is banned
+</ResponseField>
+
+#### ignore_user()
+
+```python
+def ignore_user(self, username)
+```
+
+Ignores a user (hides their messages).
+
+<ParamField path="username" type="str">
+  Username to ignore
+</ParamField>
+
+#### unignore_user()
+
+```python
+def unignore_user(self, username)
+```
+
+Unignores a previously ignored user.
+
+<ParamField path="username" type="str">
+  Username to unignore
+</ParamField>
+
+#### is_user_ignored()
+
+```python
+def is_user_ignored(self, username)
+```
+
+Checks if a user is ignored.
+
+<ParamField path="username" type="str">
+  Username to check
+</ParamField>
+
+<ResponseField name="ignored" type="bool">
+  True if user is ignored
+</ResponseField>
+
+## IP Address Utilities
+
+#### get_country_code()
+
+```python
+def get_country_code(self, ip_address)
+```
+
+Determines the country code for an IP address.
+
+<ParamField path="ip_address" type="str">
+  IP address to lookup
+</ParamField>
+
+<ResponseField name="country_code" type="str">
+  Two-letter country code (e.g., "US", "GB", "DE")
+</ResponseField>
+
+<CodeGroup>
+```python Example: Get Country Code
+from pynicotine.core import core
+
+country = core.network_filter.get_country_code("8.8.8.8")
+print(f"Country: {country}")  # Output: US
+```
+</CodeGroup>
+
+#### is_ip_address()
+
+```python
+@staticmethod
+def is_ip_address(ip_address, allow_zero=True, allow_wildcard=True)
+```
+
+Validates whether a string is a valid IPv4 address.
+
+<ParamField path="ip_address" type="str">
+  String to validate
+</ParamField>
+
+<ParamField path="allow_zero" type="bool" default={true}>
+  Whether to accept "0.0.0.0"
+</ParamField>
+
+<ParamField path="allow_wildcard" type="bool" default={true}>
+  Whether to accept wildcards like "192.168.*.*"
+</ParamField>
+
+<ResponseField name="valid" type="bool">
+  True if valid IP address
+</ResponseField>
+
+## Country Codes
+
+The `COUNTRIES` dictionary maps ISO country codes to country names.
+
+<CodeGroup>
+```python Example: Access Country Names
+from pynicotine.networkfilter import NetworkFilter
+
+country_name = NetworkFilter.COUNTRIES.get("US")
+print(country_name)  # Output: United States
+
+# List all countries
+for code, name in NetworkFilter.COUNTRIES.items():
+    print(f"{code}: {name}")
+```
+</CodeGroup>
+
+## IP Wildcards
+
+IP banning and ignoring supports wildcard patterns:
+
+- `192.168.1.*` - Matches all IPs in 192.168.1.0/24 subnet
+- `10.*.*.*` - Matches all IPs in 10.0.0.0/8 subnet
+- `172.16.*.5` - Matches specific IPs across subnets
+
+<CodeGroup>
+```python Example: Wildcard IP Banning
+from pynicotine.core import core
+
+# Ban entire subnet
+core.network_filter.ban_user_ip(ip_address="192.168.1.*")
+
+# Check if specific IP is banned
+is_banned = core.network_filter.is_user_ip_banned(
+    ip_address="192.168.1.100"
+)
+print(is_banned)  # Output: True
+```
+</CodeGroup>
+
+## Configuration Integration
+
+Filtered users are persisted in the configuration:
+
+```python
+from pynicotine.config import config
+
+# Access ban lists
+banlist = config.sections["server"]["banlist"]
+ignorelist = config.sections["server"]["ignorelist"]
+ipblocklist = config.sections["server"]["ipblocklist"]
+ipignorelist = config.sections["server"]["ipignorelist"]
+```
+
+<Note>
+Changes to ban and ignore lists are automatically persisted to the configuration file.
+</Note>
+
+<CodeGroup>
+```python Example: Complete Filtering Workflow
+from pynicotine.core import core
+
+# Ban a spammer
+core.network_filter.ban_user("spammer")
+
+# Ignore an annoying user
+core.network_filter.ignore_user("annoying")
+
+# Ban IP range
+core.network_filter.ban_user_ip(ip_address="10.0.0.*")
+
+# Check user status
+if core.network_filter.is_user_banned("spammer"):
+    print("User is banned")
+
+if core.network_filter.is_user_ip_banned(ip_address="10.0.0.5"):
+    print("IP is banned")
+
+# Later, unban if needed
+core.network_filter.unban_user("spammer")
+core.network_filter.unban_user_ip(ip_address="10.0.0.*")
+```
+</CodeGroup>

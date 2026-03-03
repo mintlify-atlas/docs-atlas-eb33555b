@@ -1,0 +1,365 @@
+---
+title: Testing Guidelines
+description: Run tests, validate code quality, and ensure your changes work correctly across platforms
+---
+
+Nicotine+ uses comprehensive testing to ensure code quality and cross-platform compatibility. All changes must pass unit tests, integration tests, and code quality checks.
+
+## Continuous Integration
+
+It is important that all changes pass unit and integration testing. Continuous integration (CI) is implemented using GitHub Actions workflows, which run tests on various platforms for each commit.
+
+<Warning>
+Although you can run tests locally, local testing should not be relied upon for changes that affect packaging or are likely to break on other platforms. GitHub Actions provides the authoritative test environment.
+</Warning>
+
+## Running Tests Locally
+
+### Unit and Integration Tests
+
+Run the test suite using Python's unittest module:
+
+```sh
+python3 -m unittest
+```
+
+<Info>
+Tests are defined in the `pynicotine/tests/` folder and should be expanded to cover larger parts of the client when possible.
+</Info>
+
+### Code Style Checks
+
+Verify code follows style guidelines using pycodestyle:
+
+```sh
+python3 -m pycodestyle
+```
+
+### Code Linting
+
+Perform static code analysis using Pylint:
+
+```sh
+python3 -m pylint --recursive=y .
+```
+
+### Build Testing
+
+Test that the application builds correctly:
+
+```sh
+python3 -m build
+```
+
+## Test Categories
+
+<Tabs>
+  <Tab title="Unit Tests">
+    Unit tests verify individual components and functions in isolation.
+    
+    **Location:** `pynicotine/tests/`
+    
+    **Run Command:**
+    ```sh
+    python3 -m unittest
+    ```
+    
+    Tests cover:
+    - Protocol message parsing
+    - Configuration management
+    - Data structure operations
+    - Utility functions
+  </Tab>
+  
+  <Tab title="Integration Tests">
+    Integration tests verify components work together correctly.
+    
+    **Included in:** Standard unittest run
+    
+    Tests cover:
+    - Component initialization
+    - Event system interactions
+    - Network message routing
+    - File transfer workflows
+  </Tab>
+  
+  <Tab title="Code Quality">
+    Automated checks ensure code quality and consistency.
+    
+    **Tools:**
+    - **pycodestyle** - PEP 8 style compliance
+    - **Pylint** - Static analysis and linting
+    
+    **Commands:**
+    ```sh
+    python3 -m pycodestyle
+    python3 -m pylint --recursive=y .
+    ```
+  </Tab>
+</Tabs>
+
+## Creating Tests
+
+When adding new functionality or fixing bugs, expand the test coverage:
+
+<Steps>
+  <Step title="Identify test location">
+    Find or create the appropriate test file in `pynicotine/tests/` that corresponds to your changes
+  </Step>
+  
+  <Step title="Write test cases">
+    Create test methods that verify the expected behavior:
+    
+    ```python
+    import unittest
+    
+    class TestMyFeature(unittest.TestCase):
+        def test_basic_functionality(self):
+            # Arrange
+            expected_result = "expected"
+            
+            # Act
+            actual_result = my_function()
+            
+            # Assert
+            self.assertEqual(actual_result, expected_result)
+    ```
+  </Step>
+  
+  <Step title="Run tests locally">
+    Verify your tests pass:
+    ```sh
+    python3 -m unittest
+    ```
+  </Step>
+  
+  <Step title="Push and verify CI">
+    Ensure GitHub Actions runs all tests successfully
+  </Step>
+</Steps>
+
+<Tip>
+Aim to cover both positive cases (expected behavior) and negative cases (error handling) in your tests.
+</Tip>
+
+## Manual Testing Platforms
+
+Before releases, maintainers ensure Nicotine+ works on these platforms:
+
+- **Windows** - Latest version
+- **macOS** - Latest version  
+- **Ubuntu 18.04** - Oldest supported GTK 3 and Python 3 versions
+- **Ubuntu 22.04** - Oldest supported GTK 4 version
+- **Latest Ubuntu/Fedora** - Current stable releases
+
+<Note>
+You don't need to test on all platforms for typical contributions, but be aware that CI tests across multiple operating systems and Python versions.
+</Note>
+
+## Testing Development Builds
+
+Test your changes using various installation methods:
+
+### Git Development Build
+
+The recommended method for active development:
+
+<Steps>
+  <Step title="Clone and navigate">
+    ```sh
+    git clone https://github.com/nicotine-plus/nicotine-plus.git
+    cd nicotine-plus
+    ```
+  </Step>
+  
+  <Step title="Make your changes">
+    Edit source files as needed
+  </Step>
+  
+  <Step title="Run directly">
+    ```sh
+    ./nicotine
+    ```
+  </Step>
+  
+  <Step title="Update and test again">
+    ```sh
+    git pull
+    ./nicotine
+    ```
+  </Step>
+</Steps>
+
+<Tip>
+This method allows immediate testing of changes without reinstallation.
+</Tip>
+
+### Pip Install from Git
+
+Test installation from Git:
+
+```sh
+pip3 install git+https://github.com/nicotine-plus/nicotine-plus.git
+nicotine
+```
+
+Update to latest:
+```sh
+pip3 install --upgrade git+https://github.com/nicotine-plus/nicotine-plus.git
+```
+
+## Profiling and Performance Testing
+
+Use [py-spy](https://github.com/benfred/py-spy) for real-time performance profiling:
+
+<Steps>
+  <Step title="Install py-spy">
+    ```sh
+    pip3 install py-spy
+    ```
+  </Step>
+  
+  <Step title="Run with profiling">
+    ```sh
+    py-spy top ./nicotine
+    ```
+  </Step>
+  
+  <Step title="Analyze output">
+    - Press `L` to aggregate by line number
+    - Press `R` to reset the view
+    - Identify performance bottlenecks
+  </Step>
+</Steps>
+
+<Info>
+Profiler output shows real-time CPU usage by function, helping identify performance issues before they become problems.
+</Info>
+
+## Debug Testing
+
+Enable verbose debug logging during testing:
+
+<Steps>
+  <Step title="Show log pane">
+    Click the ellipsis icon in the bottom right corner of the main window
+  </Step>
+  
+  <Step title="Enable log categories">
+    Right-click the log pane and select categories:
+    - **Connections** - Network operations
+    - **Messages** - Protocol messages  
+    - **Transfers** - File transfers
+    - **Miscellaneous** - General debug messages
+  </Step>
+  
+  <Step title="Log to file (optional)">
+    `Menu -> Preferences -> Logging -> Log debug messages to file`
+  </Step>
+</Steps>
+
+<Warning>
+Disable debug logging when not needed, as it impacts performance significantly.
+</Warning>
+
+## Pre-Commit Checklist
+
+Before committing changes, verify:
+
+<Steps>
+  <Step title="All tests pass">
+    ```sh
+    python3 -m unittest
+    ```
+  </Step>
+  
+  <Step title="Code style is correct">
+    ```sh
+    python3 -m pycodestyle
+    ```
+  </Step>
+  
+  <Step title="No linting errors">
+    ```sh
+    python3 -m pylint --recursive=y .
+    ```
+  </Step>
+  
+  <Step title="Application runs">
+    ```sh
+    ./nicotine
+    ```
+    Verify basic functionality works
+  </Step>
+</Steps>
+
+## Testing Translation Updates
+
+When modifying translatable strings:
+
+<Steps>
+  <Step title="Update translation template">
+    ```sh
+    python3 data/scripts/update_translation_template.py
+    ```
+  </Step>
+  
+  <Step title="Verify template">
+    Check `po/nicotine.pot` for new/modified strings
+  </Step>
+  
+  <Step title="Test in different locales">
+    Run the application with different language settings if possible
+  </Step>
+</Steps>
+
+<Note>
+Weblate handles translation updates automatically via pull requests. Use "Create a merge commit" when merging to preserve translator attribution.
+</Note>
+
+## Continuous Integration Details
+
+GitHub Actions automatically runs:
+
+- **Unit tests** on multiple Python versions
+- **Integration tests** across Windows, macOS, and Linux
+- **Code style checks** with pycodestyle
+- **Linting** with Pylint  
+- **Build tests** to verify packaging
+- **Platform-specific installers** for Windows and macOS
+
+<Info>
+CI test results appear on pull requests and commits. All checks must pass before changes can be merged.
+</Info>
+
+## Unstable Build Testing
+
+Test the latest unstable builds across platforms:
+
+### GNU/Linux
+
+<CodeGroup>
+```sh Ubuntu/Debian PPA
+sudo add-apt-repository ppa:nicotine-team/unstable
+sudo apt update && sudo apt install nicotine
+```
+
+```sh Snap (Edge)
+sudo snap install nicotine-plus --edge
+```
+</CodeGroup>
+
+### Windows and macOS
+
+Unstable installers are built automatically after each commit:
+
+- Windows x64/ARM64 installers and portable packages
+- macOS Intel/Apple Silicon installers
+
+Download from the [GitHub Actions artifacts](https://github.com/nicotine-plus/nicotine-plus/actions).
+
+## Next Steps
+
+- Review [Development Overview](/development/overview) for best practices
+- Understand the [Architecture](/development/architecture) for deeper insights
+- Check [Setup](/development/setup) for dependency information

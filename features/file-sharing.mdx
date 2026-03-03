@@ -1,0 +1,211 @@
+---
+title: File Sharing
+description: Configure and manage your shared files and folders in Nicotine+
+---
+
+Nicotine+ allows you to share files with other users on the Soulseek network. You can configure multiple shared folders with different permission levels to control who can access your files.
+
+## Share Permission Levels
+
+Nicotine+ supports three permission levels for sharing files:
+
+<Info>
+**Public Shares**: Available to all users on the network
+
+**Buddy Shares**: Only accessible to users on your buddy list
+
+**Trusted Shares**: Restricted to trusted buddies only
+</Info>
+
+### Setting Up Shares
+
+<Steps>
+  <Step title="Add a Shared Folder">
+    Navigate to the sharing preferences and click "Add Folder" to select a directory you want to share.
+  </Step>
+  
+  <Step title="Choose Permission Level">
+    Select the appropriate permission level:
+    - **Public** for general sharing
+    - **Buddy** to restrict to friends
+    - **Trusted** for your most trusted contacts
+  </Step>
+  
+  <Step title="Configure Virtual Name">
+    Assign a virtual name to your share. This is what other users will see instead of your actual folder path. Virtual names are automatically sanitized to:
+    - Remove invalid characters like slashes
+    - Ensure uniqueness across all your shares
+    - Default to the folder name if not specified
+  </Step>
+  
+  <Step title="Scan Your Shares">
+    Click "Rescan" to build the file database. Nicotine+ will:
+    - Index all files and folders
+    - Extract audio metadata (bitrate, sample rate, duration)
+    - Create a searchable word index
+    - Support files up to 4GB in size
+  </Step>
+</Steps>
+
+## Share Scanning Process
+
+When you rescan your shares, Nicotine+ performs several operations:
+
+<Accordion title="What happens during a scan?">
+  1. **File Discovery**: Scans all directories and subdirectories
+  2. **Metadata Extraction**: Reads audio file tags (MP3, FLAC, OGG, etc.)
+  3. **Database Building**: Creates optimized database files (.dbn format)
+  4. **Word Indexing**: Builds search index for fast lookups
+  5. **Compression**: Generates compressed share lists for quick transfers
+</Accordion>
+
+### Rescan Options
+
+<Tabs>
+  <Tab title="Regular Rescan">
+    Updates your share database while preserving existing data. Only modified files are re-indexed.
+    
+    **Use when**: You've added or removed files from existing shared folders
+  </Tab>
+  
+  <Tab title="Rebuild Shares">
+    Completely rebuilds your share database from scratch.
+    
+    **Use when**: You experience database corruption or want to force a complete refresh
+  </Tab>
+  
+  <Tab title="Automatic Rescan">
+    Configure automatic rescanning:
+    - **On Startup**: Rescan shares when Nicotine+ launches
+    - **Daily Schedule**: Set a specific time for automatic rescans
+  </Tab>
+</Tabs>
+
+## Share Filters
+
+Control which files are excluded from sharing using filters:
+
+```
+Examples:
+*.tmp          - Exclude all temporary files
+*.db           - Exclude database files
+Private\*      - Exclude entire "Private" folder
+*backup*       - Exclude files with "backup" in the name
+```
+
+<Warning>
+Filters use wildcard patterns. Add `\` at the end to filter entire folders.
+</Warning>
+
+## File Type Detection
+
+Nicotine+ automatically categorizes files by type:
+
+<Accordion title="Supported File Types">
+  - **Audio**: MP3, FLAC, OGG, WAV, AAC, OPUS, WMA, and 40+ formats
+  - **Video**: MP4, MKV, AVI, MOV, WEBM, and more
+  - **Images**: JPG, PNG, GIF, WEBP, SVG, TIFF
+  - **Archives**: ZIP, RAR, 7Z, TAR, GZ
+  - **Documents**: PDF, DOC, EPUB, TXT
+  - **Executables**: EXE, APK, DMG, DEB
+</Accordion>
+
+## Database Management
+
+Share data is stored in custom database files:
+
+<Info>
+Database files are located in your Nicotine+ data folder:
+- `publicfiles.dbn` - Public share file index
+- `buddyfiles.dbn` - Buddy share file index  
+- `trustedfiles.dbn` - Trusted share file index
+- `words.dbn` - Search word index
+- `lowercasepaths.dbn` - Case-insensitive path lookup
+</Info>
+
+### Database Errors
+
+If you encounter database version errors:
+
+<Steps>
+  <Step title="Backup Your Shares">
+    Note your shared folder paths and settings
+  </Step>
+  
+  <Step title="Delete Database Files">
+    Remove all `.dbn` files from your data folder
+  </Step>
+  
+  <Step title="Rebuild Shares">
+    Perform a complete share rebuild
+  </Step>
+</Steps>
+
+## Share Statistics
+
+Nicotine+ tracks and displays:
+- Total number of shared files
+- Total number of shared folders
+- Combined size of all shares
+- Share statistics sent to server for your profile
+
+<Note>
+Only **public** and optionally **buddy** shares count toward your server statistics. Trusted shares remain private.
+</Note>
+
+## Hidden Files
+
+On Windows, Nicotine+ automatically excludes:
+- Files marked with the hidden attribute
+- System folders (with exceptions for drive roots)
+
+## Best Practices
+
+<Tip>
+**Organize Your Shares**:
+- Use clear, descriptive virtual names
+- Group related content in dedicated folders
+- Separate public and private content
+- Use buddy/trusted shares for exclusive content
+
+**Performance Tips**:
+- Avoid sharing folders with extremely deep nesting
+- Exclude system and cache folders
+- Schedule automatic rescans during off-peak hours
+- Monitor share database size (shown in preferences)
+</Tip>
+
+## Revealing Shares to Different Users
+
+You can configure whether buddy and trusted shares are visible:
+
+- **Reveal Buddy Shares**: Make buddy-level shares visible to all users
+- **Reveal Trusted Shares**: Make trusted-level shares visible to buddies
+
+<Warning>
+Reveal settings affect what others can browse and download. Use with caution to maintain privacy.
+</Warning>
+
+## Troubleshooting
+
+### Shares Not Appearing
+
+1. Check that shares are mounted and accessible
+2. Verify folder permissions (read access required)
+3. Ensure rescan completed successfully
+4. Check share filters aren't excluding content
+
+### Slow Scan Performance
+
+- Reduce number of shared files
+- Exclude large folders with temporary files
+- Use share filters to skip unnecessary files
+- Ensure disk isn't heavily used during scan
+
+### Character Encoding Issues
+
+Nicotine+ handles non-ASCII filenames by:
+- Using UTF-8 encoding throughout
+- Converting backslashes in filenames to sentinels
+- Supporting international characters in file names
+- Providing fallback for legacy client compatibility

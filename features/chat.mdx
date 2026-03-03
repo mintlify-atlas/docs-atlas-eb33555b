@@ -1,0 +1,587 @@
+---
+title: Chat
+description: Communicate with other users through chat rooms and private messages
+---
+
+Nicotine+ provides multiple ways to communicate with other users on the Soulseek network, including public chat rooms, private messages, and user interactions.
+
+## Chat Rooms
+
+Chat rooms are public spaces where multiple users can communicate:
+
+### Joining Rooms
+
+<Steps>
+  <Step title="Find a Room">
+    Discover rooms through:
+    - Server room list (refreshed automatically)
+    - Auto-join list in preferences
+    - Room search from other users
+    - Direct room name entry
+  </Step>
+  
+  <Step title="Join the Room">
+    Click a room name or enter it manually:
+    - Room names are limited to 24 characters
+    - Only ASCII characters allowed
+    - Case-sensitive
+    - Spaces are preserved
+  </Step>
+  
+  <Step title="View Room Info">
+    After joining, you'll see:
+    - List of users currently in the room
+    - User statistics (files, speed)
+    - Room ticker messages
+    - Whether it's a private room
+  </Step>
+</Steps>
+
+### Room Types
+
+<Tabs>
+  <Tab title="Public Rooms">
+    Anyone can join and participate:
+    
+    **Features**:
+    - Listed in server room list
+    - No membership required
+    - Open to all users
+    - Moderated by community
+    
+    **Examples**: music genres, languages, interests
+  </Tab>
+  
+  <Tab title="Private Rooms">
+    Membership-based rooms with restricted access:
+    
+    **Features**:
+    - Owner-controlled membership
+    - Operator permissions
+    - Member list management
+    - Invitation system
+    
+    **Access**: Requires invitation from owner/operator
+  </Tab>
+  
+  <Tab title="Global Room">
+    Special server-wide public chat:
+    
+    **Features**:
+    - Always available
+    - Named "Public " (with trailing space)
+    - Highest visibility
+    - General discussion
+  </Tab>
+</Tabs>
+
+### Sending Messages
+
+<Steps>
+  <Step title="Type Your Message">
+    Enter text in the message input field at the bottom of the room tab.
+  </Step>
+  
+  <Step title="Use Commands (Optional)">
+    Special commands available:
+    ```
+    /me action          - Send action message (* username action)
+    /join roomname      - Join another room  
+    /leave              - Leave current room
+    /clear              - Clear room messages
+    ```
+  </Step>
+  
+  <Step title="Send Message">
+    Press Enter to send. Your message:
+    - Appears to all room users
+    - Logged if logging enabled
+    - Processed by word replacement (if configured)
+    - Filtered through plugins
+  </Step>
+</Steps>
+
+<Warning>
+Messages cannot contain newline characters. Pressing Enter sends the message immediately.
+</Warning>
+
+### Room Features
+
+<Accordion title="Room Tickers">
+  Set a personal status message visible to all room users:
+  
+  1. Right-click the room tab
+  2. Select "Set Ticker"
+  3. Enter your ticker message
+  4. Ticker appears in room's ticker panel
+  
+  **Uses**: Share status, announcements, interests
+</Accordion>
+
+<Accordion title="User List">
+  View all users currently in the room:
+  
+  - **Username**: Click to view user info
+  - **Status**: Online/Away indicator
+  - **Speed**: Upload speed
+  - **Files**: Number of shared files
+  - **Country**: Geographic location flag
+  
+  **Actions**: Right-click for user menu
+</Accordion>
+
+### Private Room Management
+
+If you own or operate a private room:
+
+<Tabs>
+  <Tab title="Owner Actions">
+    Room owners have full control:
+    
+    **Add Members**: Invite users to join room
+    
+    **Remove Members**: Revoke room access
+    
+    **Add Operators**: Grant moderation powers
+    
+    **Remove Operators**: Revoke operator status
+    
+    **Ownership**: Transfer or cancel room ownership
+    
+    **Settings**: Configure room properties
+  </Tab>
+  
+  <Tab title="Operator Actions">
+    Operators can manage room membership:
+    
+    **Add Members**: Invite new users
+    
+    **Remove Members**: Remove disruptive users
+    
+    **Moderate**: Enforce room rules
+    
+    **Note**: Cannot add/remove other operators
+  </Tab>
+  
+  <Tab title="Member Actions">
+    Regular members can:
+    
+    **Participate**: Send and read messages
+    
+    **Leave**: Cancel membership anytime
+    
+    **View**: See member and operator lists
+  </Tab>
+</Tabs>
+
+### Room Invitations
+
+Control whether you receive private room invites:
+
+<Steps>
+  <Step title="Open Preferences">
+    Navigate to Settings > Server
+  </Step>
+  
+  <Step title="Toggle Invitations">
+    Enable/disable "Accept Private Room Invitations"
+  </Step>
+  
+  <Step title="Receive Invites">
+    When enabled:
+    - Room owners can add you to private rooms
+    - You receive membership notifications
+    - Rooms appear in your room list
+  </Step>
+</Steps>
+
+## Private Messages
+
+One-on-one communication with individual users:
+
+### Sending Private Messages
+
+<Steps>
+  <Step title="Open Chat">
+    Start a private conversation:
+    - Click username in room/search
+    - Use "Send Message" menu option
+    - Type username in new chat tab
+  </Step>
+  
+  <Step title="Compose Message">
+    Type your message in the input field
+  </Step>
+  
+  <Step title="Send">
+    Press Enter to send. Message is:
+    - Delivered via server
+    - Queued if user is offline
+    - Logged if logging enabled
+    - Acknowledged by server
+  </Step>
+</Steps>
+
+### Private Message Features
+
+<Tabs>
+  <Tab title="Message Types">
+    Different message formats:
+    
+    **Regular**: Standard text messages
+    
+    **Action**: `/me` style actions
+    ```
+    /me is listening to music
+    Result: * username is listening to music
+    ```
+    
+    **CTCP**: Client-to-client protocol
+    ```
+    Send: VERSION
+    Reply: Nicotine+ version info
+    ```
+  </Tab>
+  
+  <Tab title="Auto-Reply">
+    Automatic responses when away:
+    
+    **Setup**:
+    1. Set status to Away
+    2. Configure auto-reply message in preferences
+    3. Message sent once per user per away session
+    
+    **Example**: "I'm away from keyboard, will respond later"
+  </Tab>
+  
+  <Tab title="Message Queue">
+    Handle offline messages:
+    
+    - Messages queued while user offline
+    - Delivered when user comes online
+    - IP address verification before display
+    - Ignored users filtered out
+  </Tab>
+</Tabs>
+
+### Chat History
+
+Manage your conversation history:
+
+<Accordion title="History Settings">
+  **Store Private Chats**: Remember open conversations
+  
+  **Auto-Reopen**: Restore chats on startup
+  
+  **Clear**: Remove all history
+  
+  **Selective**: Close individual chats
+  
+  **Privacy**: Disable storage in preferences
+</Accordion>
+
+## Message Notifications
+
+Stay informed of new messages:
+
+### Highlight Triggers
+
+Messages are highlighted when containing:
+
+<Steps>
+  <Step title="Your Username">
+    Automatic highlight when someone mentions you
+  </Step>
+  
+  <Step title="Keywords">
+    Configure custom keywords in preferences:
+    - Whole word matching
+    - Case-insensitive
+    - Listed in Words section
+  </Step>
+  
+  <Step title="Username Mentions">
+    Highlight messages from specific users
+  </Step>
+</Steps>
+
+<Info>
+**Notification Types**:
+- **Self**: Your username mentioned
+- **Keyword**: Custom keyword found
+- **Username**: Specific user spoke
+</Info>
+
+### Desktop Notifications
+
+Receive OS-level notifications:
+
+<Tabs>
+  <Tab title="Room Messages">
+    Notify on chat room activity:
+    
+    - New messages in rooms
+    - Mentions of your username  
+    - Keyword matches
+    - Configurable per-room
+  </Tab>
+  
+  <Tab title="Private Messages">
+    Notify on direct messages:
+    
+    - New private message received
+    - Shows sender and preview
+    - Click to open chat
+    - Sound alerts (optional)
+  </Tab>
+</Tabs>
+
+## Text Formatting
+
+Customize message appearance:
+
+### Word Replacement
+
+Automatically replace text in messages:
+
+<Steps>
+  <Step title="Configure Replacements">
+    Preferences > Words > Auto-Replace
+  </Step>
+  
+  <Step title="Add Patterns">
+    Enter find/replace pairs:
+    ```
+    lol -> laughing out loud
+    brb -> be right back  
+    ```
+  </Step>
+  
+  <Step title="Enable Feature">
+    Toggle "Replace Words" checkbox
+  </Step>
+</Steps>
+
+### Word Censoring
+
+Filter incoming messages:
+
+<Steps>
+  <Step title="Add Censored Words">
+    Preferences > Words > Censored
+  </Step>
+  
+  <Step title="Set Patterns">
+    List words/phrases to censor
+  </Step>
+  
+  <Step title="Enable Censoring">
+    Toggle "Censor Words" checkbox
+  </Step>
+</Steps>
+
+<Note>
+Censoring only affects incoming messages, not your own.
+</Note>
+
+## Chat Logging
+
+Record conversations to disk:
+
+### Enable Logging
+
+<Tabs>
+  <Tab title="All Rooms">
+    Log all chat room messages:
+    
+    1. Preferences > Logging
+    2. Enable "Log Chat Rooms"
+    3. Messages saved to room log folder
+  </Tab>
+  
+  <Tab title="Specific Rooms">
+    Log selected rooms only:
+    
+    1. Preferences > Logging > Rooms
+    2. Add room names to list
+    3. Only listed rooms logged
+  </Tab>
+  
+  <Tab title="Private Chats">
+    Log private messages:
+    
+    1. Preferences > Logging
+    2. Enable "Log Private Chats"
+    3. Choose specific users or all
+  </Tab>
+</Tabs>
+
+### Log Format
+
+Logs are saved as text files:
+
+```
+[13:45:22] [username] message text
+[13:46:10] * username action message  
+[13:47:03] Public | [username] global room message
+```
+
+<Info>
+**Log Locations**:
+- **Rooms**: `~/.local/share/nicotine/chatlogs/rooms/`
+- **Private**: `~/.local/share/nicotine/chatlogs/private/`
+</Info>
+
+## Text Completion
+
+Speed up typing with auto-completion:
+
+### Completion Sources
+
+<Accordion title="What Can Be Completed">
+  **Usernames**: All known users
+  
+  **Room Names**: Public and private rooms
+  
+  **Buddy Names**: Users on buddy list  
+  
+  **Commands**: Available slash commands
+  
+  **Custom**: Plugin-defined completions
+</Accordion>
+
+### Using Completion
+
+<Steps>
+  <Step title="Start Typing">
+    Enter first few characters of word
+  </Step>
+  
+  <Step title="Trigger Completion">
+    Press Tab key
+  </Step>
+  
+  <Step title="Cycle Options">
+    Press Tab repeatedly to cycle through matches
+  </Step>
+</Steps>
+
+## Message Filtering
+
+Control which messages you see:
+
+### Ignore Users
+
+Block messages from specific users:
+
+<Steps>
+  <Step title="Add to Ignore List">
+    Right-click username > Ignore User
+  </Step>
+  
+  <Step title="Effect">
+    User's messages hidden in:
+    - Chat rooms
+    - Private messages  
+    - Ticker updates
+    - Search results
+  </Step>
+  
+  <Step title="Manage List">
+    Preferences > Users > Ignored Users
+  </Step>
+</Steps>
+
+### IP-Based Ignoring
+
+Block by IP address:
+
+- More persistent than username ignore
+- Survives username changes
+- Configured in preferences
+- Affects all network interactions
+
+## Server Messages
+
+Special messages from the server user:
+
+<Info>
+Messages from user "server" are official notifications:
+
+- Room status updates
+- Membership changes  
+- Server announcements
+- Error messages
+
+Some server messages auto-redirect to relevant room tabs.
+</Info>
+
+## Bulk Messaging
+
+Send messages to multiple users:
+
+<Steps>
+  <Step title="Select Target Group">
+    Choose from:
+    - **Buddies**: All users on buddy list
+    - **Downloading**: Users downloading from you
+  </Step>
+  
+  <Step title="Compose Message">
+    Type message in bulk message dialog
+  </Step>
+  
+  <Step title="Send">
+    Message delivered to all users in group
+  </Step>
+</Steps>
+
+<Warning>
+Use bulk messaging sparingly to avoid being perceived as spamming.
+</Warning>
+
+## Best Practices
+
+<Tip>
+**Chat Etiquette**:
+
+- Be respectful and considerate
+- Avoid spam and excessive messaging  
+- Use private messages for personal conversations
+- Respect room rules and operators
+- Don't beg for files or privileges
+- Use appropriate language for the room
+
+**Privacy Tips**:
+
+- Don't share personal information publicly
+- Be cautious with file sharing offers via PM
+- Use ignore feature for troublesome users
+- Report serious issues to room operators
+- Review logs periodically if enabled
+</Tip>
+
+## Troubleshooting
+
+### Messages Not Sending
+
+1. Check server connection status
+2. Verify user is not offline
+3. Check message doesn't contain newlines
+4. Ensure you haven't been banned from room
+5. Confirm you're still a room member
+
+### Not Receiving Messages
+
+- User might have you ignored
+- IP-based ignore active
+- Messages queued (user offline)
+- Room membership revoked
+- Network connectivity issues
+
+### Auto-Completion Not Working
+
+- Enable completion in preferences
+- Verify completion sources enabled
+- Check Tab key not remapped
+- Ensure sufficient text typed

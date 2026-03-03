@@ -1,0 +1,507 @@
+---
+title: User Management
+description: Manage your buddy list, user interactions, and user-related features
+---
+
+Nicotine+ provides comprehensive user management features including buddy lists, user status tracking, and privilege management.
+
+## Buddy List
+
+The buddy list helps you track and organize your friends on the Soulseek network:
+
+### Adding Buddies
+
+<Steps>
+  <Step title="Find User">
+    Locate the user you want to add:
+    - From chat room user list
+    - From search results
+    - From browse list
+    - Manual username entry
+  </Step>
+  
+  <Step title="Add to List">
+    Right-click username and select "Add Buddy" or use the buddy list interface
+  </Step>
+  
+  <Step title="Configure Settings">
+    Set buddy properties:
+    - **Note**: Personal reminder about this user
+    - **Notify Status**: Get alerts when they come online/offline
+    - **Prioritize**: Give upload queue priority
+    - **Trust**: Grant access to trusted shares
+  </Step>
+</Steps>
+
+### Buddy Properties
+
+<Tabs>
+  <Tab title="Basic Info">
+    Information tracked for each buddy:
+    
+    **Username**: Their Soulseek username
+    
+    **Status**: Online, Away, or Offline
+    
+    **Last Seen**: Date/time of last online presence
+    
+    **Country**: Geographic location (if available)
+    
+    **Note**: Your personal notes about the user
+  </Tab>
+  
+  <Tab title="Status Notifications">
+    Get notified of status changes:
+    
+    **Online**: Desktop notification when buddy comes online
+    
+    **Offline**: Notification when buddy goes offline
+    
+    **Away**: Status change from online to away
+    
+    **Format**: "username is online/away/offline"
+    
+    **Requirements**: Enable per-buddy in buddy properties
+  </Tab>
+  
+  <Tab title="Privileges">
+    Special buddy privileges:
+    
+    **Prioritized**: Higher queue priority for uploads
+    
+    **Trusted**: Access to your trusted shares
+    
+    **Buddy Shares**: Access to buddy-level shares
+    
+    **Auto-granted**: Privileges activate automatically
+  </Tab>
+</Tabs>
+
+### Buddy Management
+
+<Accordion title="Managing Your Buddy List">
+  **Add Buddy**: Right-click any username > Add Buddy
+  
+  **Remove Buddy**: Right-click in buddy list > Remove
+  
+  **Edit Note**: Double-click note field or right-click > Edit
+  
+  **Toggle Notifications**: Click notification icon
+  
+  **Set Prioritized**: Right-click > Prioritize
+  
+  **Set Trusted**: Right-click > Trust
+  
+  **View Details**: Click username to see full info
+</Accordion>
+
+## User Status Tracking
+
+Nicotine+ tracks status for all watched users:
+
+### Status Types
+
+<Info>
+**Offline**: User is not connected to the network
+
+**Online**: User is active and available
+
+**Away**: User is connected but marked as away
+</Info>
+
+### Last Seen Tracking
+
+For offline buddies, Nicotine+ tracks:
+
+<Steps>
+  <Step title="Online Status">
+    When buddy is online:
+    - Last Seen field is empty
+    - Status shows "Online" or "Away"
+    - Real-time updates
+  </Step>
+  
+  <Step title="Goes Offline">
+    When buddy disconnects:
+    - Timestamp recorded (MM/DD/YYYY HH:MM:SS)
+    - Last Seen updated in buddy list
+    - Status changes to "Offline"
+  </Step>
+  
+  <Step title="Returns Online">
+    When buddy reconnects:
+    - Last Seen cleared
+    - Previous timestamp preserved until next offline
+    - Status notification sent (if enabled)
+  </Step>
+</Steps>
+
+<Note>
+Last Seen shows "Never seen" for buddies who have never been online since being added.
+</Note>
+
+## User Information
+
+View detailed information about any user:
+
+### User Profile
+
+Access user information by clicking their username:
+
+<Tabs>
+  <Tab title="Statistics">
+    View user's sharing statistics:
+    
+    **Upload Speed**: Average upload rate
+    
+    **Files Shared**: Total number of files
+    
+    **Folders Shared**: Number of shared directories
+    
+    **Updated**: Stats refresh when user's info changes
+  </Tab>
+  
+  <Tab title="Network Info">
+    Connection details:
+    
+    **IP Address**: User's network address
+    
+    **Port**: Connection port
+    
+    **Country**: Determined from IP geolocation
+    
+    **Privacy**: IP addresses requested on-demand
+  </Tab>
+  
+  <Tab title="Interaction History">
+    Your interactions with this user:
+    
+    **Downloads**: Files downloaded from them
+    
+    **Uploads**: Files uploaded to them
+    
+    **Messages**: Private conversation history
+    
+    **Notes**: Your personal notes
+  </Tab>
+</Tabs>
+
+## Privileged Users
+
+The Soulseek network includes privileged users:
+
+### What Are Privileges?
+
+<Info>
+Privileged status is granted to users who support the network through donations. Privileged users receive:
+
+- Higher priority in upload queues
+- Faster search result delivery
+- Enhanced network features
+- Support badge in user listings
+</Info>
+
+### Privilege Benefits for Others
+
+When uploading to privileged users:
+
+<Steps>
+  <Step title="Detection">
+    Nicotine+ receives privilege list from server
+  </Step>
+  
+  <Step title="Queue Priority">
+    Privileged users move ahead in your queue:
+    - Processed before non-privileged users
+    - Marked as "privileged" in queue
+    - Fair rotation among privileged users
+  </Step>
+  
+  <Step title="Slot Access">
+    May bypass some upload restrictions:
+    - Queue size limits (configurable)
+    - File count limits (configurable)
+    - Upload slot limits (configurable)
+  </Step>
+</Steps>
+
+## User Prioritization
+
+Give upload priority to specific users:
+
+### Setting Up Prioritization
+
+<Steps>
+  <Step title="Add User as Buddy">
+    User must be on your buddy list
+  </Step>
+  
+  <Step title="Enable Prioritization">
+    Right-click buddy > "Prioritize Uploads"
+  </Step>
+  
+  <Step title="Configure Behavior">
+    In Preferences > Uploads:
+    - **Prefer Buddies**: Prioritize ALL buddies
+    - **Selective**: Only prioritize marked buddies
+  </Step>
+</Steps>
+
+<Info>
+Prioritized buddies are treated similarly to server-privileged users in your upload queue.
+</Info>
+
+## Trusted Users
+
+Grant access to exclusive shares:
+
+### Trusted Share Access
+
+<Tabs>
+  <Tab title="Setting Trust">
+    Mark buddies as trusted:
+    
+    1. Add user to buddy list
+    2. Right-click buddy > "Trust User"
+    3. User gains access to trusted shares
+    4. Access activated immediately
+  </Tab>
+  
+  <Tab title="What They See">
+    Trusted users can:
+    
+    - Browse your trusted-level shares
+    - Search your trusted-level files
+    - Download from trusted shares
+    - See trusted shares in share counts (if revealed)
+  </Tab>
+  
+  <Tab title="Revoking Trust">
+    Remove trusted status:
+    
+    1. Right-click buddy > "Untrust User"
+    2. Access to trusted shares revoked
+    3. Existing downloads may continue
+    4. New downloads blocked
+  </Tab>
+</Tabs>
+
+<Warning>
+Only grant trusted status to users you truly trust. They will have access to files not available to the general public.
+</Warning>
+
+## User Watching
+
+Nicotine+ watches users to track their status:
+
+### How User Watching Works
+
+<Accordion title="Watch System">
+  **Automatic Watching**: Users are automatically watched when:
+  - Added to buddy list
+  - In a joined chat room
+  - Have active transfers with you
+  - In private message conversation
+  
+  **Watch Contexts**: Separate tracking for:
+  - `buddies`: From buddy list
+  - `chatrooms_roomname`: From specific chat room
+  - `privatechat`: From private messages
+  
+  **Unwatching**: Users are unwatched when:
+  - Removed from all contexts
+  - Chat room left
+  - Buddy removed
+  - Message window closed
+</Accordion>
+
+## User Actions
+
+Common actions you can perform on users:
+
+<Steps>
+  <Step title="Browse Files">
+    View user's shared files:
+    - Right-click username
+    - Select "Browse Files"
+    - File browser opens
+    - Download files/folders
+  </Step>
+  
+  <Step title="Send Message">
+    Start private conversation:
+    - Right-click username
+    - Select "Send Message"
+    - Message tab opens
+    - Chat one-on-one
+  </Step>
+  
+  <Step title="Get User Info">
+    View detailed information:
+    - Right-click username
+    - Select "User Info"
+    - Info panel displays
+    - See stats and details
+  </Step>
+  
+  <Step title="Ban/Ignore">
+    Block problematic users:
+    - Right-click username
+    - Select "Ban User" or "Ignore User"
+    - User blocked from interactions
+    - Configure in preferences
+  </Step>
+</Steps>
+
+## User Notes
+
+Add personal notes about buddies:
+
+### Adding Notes
+
+<Steps>
+  <Step title="Open Note Field">
+    Double-click the note column in buddy list
+  </Step>
+  
+  <Step title="Enter Note">
+    Type your note:
+    - Remind yourself how you know them
+    - Track shared interests
+    - Note music tastes
+    - Record any useful information
+  </Step>
+  
+  <Step title="Save">
+    Press Enter or click away to save
+  </Step>
+</Steps>
+
+<Tip>
+**Note Ideas**:
+- "Friend from rock chat room"
+- "Great jazz collection, friendly"
+- "Shares rare classical recordings"
+- "Met 2024, loves techno"
+</Tip>
+
+## Country Detection
+
+Nicotine+ shows user locations:
+
+<Accordion title="How Country Detection Works">
+  1. **IP Request**: IP address requested from server
+  2. **Geolocation**: IP mapped to country code
+  3. **Flag Display**: Country flag shown in UI
+  4. **Caching**: Country stored for future reference
+  5. **Updates**: Refreshed if user's IP changes
+</Accordion>
+
+### Privacy Considerations
+
+<Note>
+IP addresses are only requested when needed:
+- When viewing user info
+- When user joins a room
+- When receiving private messages
+- For ignore/ban by IP checks
+</Note>
+
+## Buddy List Persistence
+
+Your buddy list is automatically saved:
+
+<Info>
+Buddy information stored in configuration:
+- Username
+- Personal note  
+- Notification settings
+- Prioritization status
+- Trust status
+- Last seen timestamp
+- Country code
+
+Data synced to disk whenever changes occur.
+</Info>
+
+## Auto-Completion
+
+Buddy names appear in auto-completion:
+
+<Steps>
+  <Step title="Enable in Preferences">
+    Settings > Words > Auto-Complete Buddies
+  </Step>
+  
+  <Step title="Use in Chat">
+    Start typing buddy name and press Tab
+  </Step>
+  
+  <Step title="Complete Name">
+    Name auto-completes in chat input
+  </Step>
+</Steps>
+
+## Best Practices
+
+<Tip>
+**Managing Buddies Effectively**:
+
+**Organization**:
+- Add descriptive notes to remember users
+- Use trust selectively for close contacts
+- Enable notifications for important buddies
+- Review and clean up buddy list periodically
+
+**Sharing**:
+- Use buddy shares for friends-only content
+- Reserve trusted shares for very close contacts
+- Don't trust users you don't know well
+- Monitor who accesses your shares
+
+**Prioritization**:
+- Prioritize buddies who reciprocate
+- Use "prefer buddies" for fair treatment
+- Don't over-prioritize (slows non-buddy uploads)
+- Consider queue system implications
+
+**Privacy**:
+- Be selective about sharing IP addresses
+- Review buddy list for inactive users
+- Use ignore feature for problem users
+- Check privileges before trusting
+</Tip>
+
+## Troubleshooting
+
+### Buddy Always Shows Offline
+
+1. Verify username spelling
+2. Check user exists on network
+3. Ensure you're connected to server
+4. Try removing and re-adding buddy
+5. Check if user changed username
+
+### Status Notifications Not Working
+
+- Enable notifications in buddy properties
+- Check OS notification settings
+- Verify buddy status is actually changing
+- Ensure Nicotine+ has notification permission
+- Check notification preferences globally
+
+### Trusted Shares Not Accessible
+
+1. Confirm user is marked as trusted
+2. Verify trusted shares are configured
+3. Check shares have been scanned
+4. Ensure user is actively browsing
+5. Review share reveal settings
+
+### Last Seen Not Updating
+
+- Timestamp only updates on status change
+- Must be online for timestamp to clear
+- Check buddy list is being saved
+- Verify server connection
+- Restart Nicotine+ if stuck

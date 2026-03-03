@@ -1,0 +1,634 @@
+---
+title: Shared Folders Configuration
+description: Configure shared folders, file permissions, scan settings, and share management
+---
+
+Nicotine+ allows you to share folders with different permission levels. The share scanner indexes your files and makes them searchable on the Soulseek network.
+
+## Share Permission Levels
+
+Nicotine+ supports three permission levels for shared folders:
+
+<Steps>
+  <Step title="Public Shares">
+    Accessible by all users on the network.
+    
+    ```python
+    [transfers]
+    shared = [
+        ("Music", "/home/user/Music"),
+        ("Videos", "/home/user/Videos")
+    ]
+    ```
+  </Step>
+  
+  <Step title="Buddy Shares">
+    Only accessible to users on your buddy list.
+    
+    ```python
+    [transfers]
+    buddyshared = [
+        ("Rare Albums", "/home/user/RareMusic")
+    ]
+    ```
+  </Step>
+  
+  <Step title="Trusted Shares">
+    Only accessible to trusted buddies (marked as trusted in buddy list).
+    
+    ```python
+    [transfers]
+    trustedshared = [
+        ("Personal", "/home/user/PersonalCollection")
+    ]
+    ```
+  </Step>
+</Steps>
+
+<Info>
+Each share is a tuple: `(virtual_name, folder_path)`
+
+The virtual name is what other users see. The folder path is the actual location on your system.
+</Info>
+
+## Adding Shared Folders
+
+### Via Configuration File
+
+Manually edit the config file:
+
+```python
+[transfers]
+shared = [
+    ("Music", "/home/user/Music"),
+    ("Books", "/media/external/Books"),
+    ("Software", "/data/software")
+]
+
+buddyshared = [
+    ("Demos", "/home/user/Demos")
+]
+
+trustedshared = [
+    ("Private", "/home/user/Private")
+]
+```
+
+<Warning>
+After modifying shares in the config file, you must rescan for changes to take effect.
+</Warning>
+
+### Share Naming Rules
+
+<Accordion title="Valid Virtual Names">
+  - Cannot contain forward slashes (`/`)
+  - Cannot contain backslashes (`\`)
+  - Leading/trailing spaces and quotes are stripped
+  - Empty names default to "Shared"
+  - Duplicate names are automatically numbered: `Music`, `Music1`, `Music2`
+  
+  ```python
+  # Automatic normalization:
+  ("Music/Rock", "/path")  → ("Music_Rock", "/path")
+  ("  Music  ", "/path")  → ("Music", "/path")
+  ("", "/path")            → ("Shared", "/path")
+  ```
+</Accordion>
+
+<Accordion title="Duplicate Prevention">
+  - Cannot share the same folder path twice
+  - Cannot use the same virtual name twice
+  - Duplicates are automatically skipped during scanning
+</Accordion>
+
+<Accordion title="Path Normalization">
+  Paths are normalized using `os.path.normpath()`:
+  
+  ```python
+  "/home/user/../user/Music"  → "/home/user/Music"
+  "/home/user/Music/"         → "/home/user/Music"
+  ```
+</Accordion>
+
+## Share Scanning
+
+### Automatic Scanning
+
+```python
+[transfers]
+rescanonstartup = True        # Scan on application start
+rescan_shares_daily = True    # Enable daily rescanning
+rescan_shares_hour = 0        # Hour to rescan (0-23, in 24h format)
+```
+
+<Info>
+Daily rescanning runs at the specified hour (e.g., `rescan_shares_hour = 3` runs at 3:00 AM).
+</Info>
+
+### Manual Scanning
+
+**Via Command Line:**
+```bash
+# Rescan shares on startup
+nicotine --rescan
+
+# Rescan only (no GUI)
+nicotine --rescan --headless
+```
+
+**From Python:**
+```python
+from pynicotine.core import core
+
+# Rescan all shares
+core.shares.rescan_shares()
+
+# Force rescan (ignore unavailable shares warning)
+core.shares.rescan_shares(force=True)
+
+# Rebuild shares from scratch
+core.shares.rebuild_shares()
+```
+
+<Accordion title="Rescan vs Rebuild">
+  **Rescan:**
+  - Updates modified files
+  - Adds new files
+  - Removes deleted files
+  - Preserves unchanged file metadata
+  - Faster
+  
+  **Rebuild:**
+  - Deletes all share databases
+  - Rescans everything from scratch
+  - Re-extracts all file metadata
+  - Slower but fixes corrupted databases
+</Accordion>
+
+### Scan Process
+
+<Steps>
+  <Step title="Initialization">
+    Scanner process launches and loads existing share databases (if available).
+  </Step>
+  
+  <Step title="Directory Traversal">
+    Each shared folder is recursively scanned:
+    - Hidden files/folders are skipped (Windows)
+    - Filtered files/folders are skipped
+    - File metadata is extracted
+  </Step>
+  
+  <Step title="Metadata Extraction">
+    For audio files:
+    - Duration
+    - Bitrate (VBR detection)
+    - Sample rate
+    - Bit depth
+    
+    Uses TinyTag library for metadata parsing.
+  </Step>
+  
+  <Step title="Database Creation">
+    Creates multiple database files:
+    - `publicfiles.dbn` - Public file index
+    - `publicstreams.dbn` - Compressed folder contents
+    - `words.dbn` - Search word index
+    - Similar files for buddy and trusted shares
+  </Step>
+  
+  <Step title="Completion">
+    Emits `shares-ready` event and displays folder count:
+    
+    ```
+    Rescan complete: 1,234 folders found
+    ```
+  </Step>
+</Steps>
+
+## Share Filters
+
+### Exclude Files and Folders
+
+Prevent specific files or folders from being shared:
+
+```python
+[transfers]
+share_filters = [
+    ".*",              # Hidden files (Unix)
+    ".*\\",           # Hidden folders
+    "@eaDir\\",       # Synology metadata
+    "#recycle\\",     # Synology recycle bin
+    "#snapshot\\",    # Synology snapshots
+    "desktop.ini",     # Windows metadata
+    "Thumbs.db"        # Windows thumbnails
+]
+```
+
+<Info>
+Filters use wildcard patterns:
+- `*` matches any characters
+- Trailing `\` indicates a folder filter
+- Filters are case-insensitive
+</Info>
+
+### Filter Examples
+
+<Accordion title="Exclude Specific Extensions">
+  ```python
+  share_filters = [
+      "*.exe",
+      "*.msi",
+      "*.tmp",
+      "*.part"
+  ]
+  ```
+</Accordion>
+
+<Accordion title="Exclude Folders by Name">
+  ```python
+  share_filters = [
+      "node_modules\\",
+      ".git\\",
+      "__pycache__\\",
+      "temp\\"
+  ]
+  ```
+</Accordion>
+
+<Accordion title="Complex Patterns">
+  ```python
+  share_filters = [
+      "*.~*",           # Temporary files
+      "*~",             # Backup files
+      ".DS_Store",      # macOS metadata
+      "*.ini",          # Config files
+      "backup*\\",     # Backup folders
+  ]
+  ```
+</Accordion>
+
+## Share Databases
+
+### Database Files
+
+Shares are stored in custom `.dbn` database files:
+
+```python
+# Database locations (in data folder):
+words.dbn              # Search word index
+lowercasepaths.dbn     # Lowercase path index for search
+publicfiles.dbn        # Public file metadata
+publicmtimes.dbn       # Public file modification times
+publicstreams.dbn      # Public compressed folder data
+buddyfiles.dbn         # Buddy file metadata
+buddymtimes.dbn        # Buddy file modification times
+buddystreams.dbn       # Buddy compressed folder data
+trustedfiles.dbn       # Trusted file metadata
+trustedmtimes.dbn      # Trusted file modification times
+trustedstreams.dbn     # Trusted compressed folder data
+```
+
+<Warning>
+Do not manually edit `.dbn` files. They are binary databases managed by Nicotine+.
+</Warning>
+
+### Database Format
+
+<Accordion title="Database Structure">
+  Custom key-value format optimized for shares:
+  
+  - **Signature:** `DBN+`
+  - **Version:** 3
+  - **Protocol:** Pickle (v5)
+  - **Security:** RestrictedUnpickler (prevents code execution)
+  
+  ```python
+  # From shares.py Database class:
+  FILE_SIGNATURE = b"DBN+"
+  VERSION = 3
+  PICKLE_PROTOCOL = min(HIGHEST_PROTOCOL, 5)
+  ```
+</Accordion>
+
+<Accordion title="Database Corruption">
+  If databases become corrupted:
+  
+  1. **Automatic recovery:** Nicotine+ detects corruption and rescans
+  2. **Manual recovery:** Delete `.dbn` files and rescan:
+     
+     ```bash
+     rm ~/.local/share/nicotine/*.dbn
+     nicotine --rescan
+     ```
+  
+  3. **Version mismatch:** Upgrading Nicotine+ may require database rebuild
+</Accordion>
+
+### Database Operations
+
+```python
+# Database file size optimization:
+# - Memory-mapped for fast access
+# - Incremental updates during rescan
+# - Compressed folder data reduces bandwidth
+
+# Typical sizes:
+# - 10,000 files ≈ 10-20 MB total databases
+# - 100,000 files ≈ 100-200 MB total databases
+```
+
+## File Metadata
+
+### Supported Audio Formats
+
+```python
+# From shares.py FileTypes.AUDIO:
+AUDIO = {
+    "mp3", "flac", "ogg", "opus", "m4a", "aac", "wav",
+    "wma", "ape", "wv", "mpc", "tta", "tak",
+    "aiff", "aif", "dsf", "dff", # Lossless formats
+    "it", "mod", "s3m", "xm",     # Tracker formats
+    "mid", "midi",                # MIDI
+    # ... and many more
+}
+```
+
+### Extracted Metadata
+
+For each audio file:
+
+```python
+# File metadata structure:
+[
+    virtual_file_path,  # String: "Music\\Artist\\Album\\01 - Song.mp3"
+    size,              # Integer: file size in bytes
+    quality,           # Tuple: (bitrate, vbr, samplerate, bitdepth) or None
+    duration           # Integer: duration in seconds or None
+]
+
+# Quality tuple example:
+quality = (
+    320,    # bitrate in kbps
+    0,      # VBR flag (0=CBR, 1=VBR)
+    44100,  # sample rate in Hz
+    16      # bit depth
+)
+```
+
+<Info>
+Metadata extraction is skipped for files smaller than 128 bytes (assumed empty/invalid).
+</Info>
+
+### File Types
+
+<Accordion title="All Supported Types">
+  ```python
+  ARCHIVE = {"zip", "rar", "7z", "tar", "gz", "bz2", "xz", "iso"}
+  AUDIO = {"mp3", "flac", "ogg", "m4a", "wav", "ape", "wv"}
+  VIDEO = {"mp4", "mkv", "avi", "mov", "wmv", "flv", "webm"}
+  IMAGE = {"jpg", "png", "gif", "bmp", "webp", "svg", "tiff"}
+  DOCUMENT = {"pdf", "doc", "docx", "txt", "epub", "mobi"}
+  EXECUTABLE = {"exe", "msi", "deb", "rpm", "apk", "dmg"}
+  ```
+  
+  See `shares.py` `FileTypes` class for complete list.
+</Accordion>
+
+## Share Visibility
+
+### Reveal Buddy/Trusted Shares
+
+Control whether buddy/trusted shares count towards public share statistics:
+
+```python
+[transfers]
+reveal_buddy_shares = False    # Include buddy shares in public count
+reveal_trusted_shares = False  # Include trusted shares in public count
+```
+
+<Warning>
+Enabling these options makes your buddy/trusted share counts visible to all users, potentially revealing private collection size.
+</Warning>
+
+### User Permission Checking
+
+Nicotine+ determines access based on:
+
+<Steps>
+  <Step title="Ban Check">
+    User is banned → deny access
+    
+    ```python
+    if username in banlist:
+        return BANNED
+    ```
+  </Step>
+  
+  <Step title="Buddy Check">
+    User is trusted buddy → grant trusted access
+    
+    User is buddy → grant buddy access
+  </Step>
+  
+  <Step title="Geo-Block Check">
+    If enabled, check user's country code:
+    
+    ```python
+    [transfers]
+    geoblock = False
+    geoblockcc = ["US,CN,RU"]  # Comma-separated codes
+    ```
+  </Step>
+  
+  <Step title="Default Access">
+    Grant public access
+  </Step>
+</Steps>
+
+## Share Management
+
+### Add Share Programmatically
+
+```python
+from pynicotine.core import core
+from pynicotine.shares import PermissionLevel
+
+# Add public share
+core.shares.add_share(
+    folder_path="/home/user/Music",
+    permission_level=PermissionLevel.PUBLIC,
+    virtual_name="My Music"  # Optional
+)
+
+# Add buddy share
+core.shares.add_share(
+    folder_path="/home/user/RareAlbums",
+    permission_level=PermissionLevel.BUDDY
+)
+
+# Rescan after adding
+core.shares.rescan_shares()
+```
+
+### Remove Share
+
+```python
+# Remove by virtual name
+core.shares.remove_share("My Music")
+
+# Remove by folder path
+core.shares.remove_share("/home/user/Music")
+
+# Rescan after removing
+core.shares.rescan_shares()
+```
+
+## Backslash Handling
+
+<Note>
+Soulseek uses backslashes (`\`) as path separators. This conflicts with Unix systems where backslashes are valid filename characters.
+</Note>
+
+### Backslash Sentinel
+
+Nicotine+ substitutes backslashes in filenames:
+
+```python
+# File with backslash in name:
+"Artist\\Song Name.mp3"
+
+# Stored internally as:
+"Artist@@BACKSLASH@@Song Name.mp3"
+
+# Restored when user downloads:
+"Artist\\Song Name.mp3"
+```
+
+This happens automatically and transparently.
+
+## Troubleshooting
+
+### Shares Not Visible
+
+<Accordion title="Check Share Scan Status">
+  Ensure scanning completed successfully:
+  
+  ```
+  Rescan complete: X folders found
+  ```
+  
+  If 0 folders, check:
+  - Folder paths exist and are readable
+  - No permission errors in logs
+  - Filters aren't excluding everything
+</Accordion>
+
+<Accordion title="Verify Share Statistics">
+  After connecting to server, verify share count:
+  
+  ```python
+  # Server should receive SharedFoldersFiles message
+  # Check GUI status bar for folder/file counts
+  ```
+</Accordion>
+
+<Accordion title="Hidden Files (Windows)">
+  Windows hidden files/folders are automatically excluded:
+  
+  ```python
+  # From shares.py:
+  if entry_stat.st_file_attributes & stat.FILE_ATTRIBUTE_HIDDEN:
+      return True  # Skip hidden
+  ```
+  
+  Unhide folders to share them:
+  ```cmd
+  attrib -h "C:\Path\To\Folder"
+  ```
+</Accordion>
+
+### Slow Scanning
+
+<Accordion title="Large Collections">
+  Scanning is CPU and I/O intensive:
+  
+  - **10,000 files:** ~1-2 minutes
+  - **100,000 files:** ~10-20 minutes
+  - **1,000,000 files:** ~2-3 hours
+  
+  Progress is shown during scanning.
+</Accordion>
+
+<Accordion title="Network Drives">
+  Scanning network drives is significantly slower:
+  
+  - Use local drives when possible
+  - Consider selective sharing
+  - Mount network drives locally for better performance
+</Accordion>
+
+### Database Errors
+
+<Accordion title="DatabaseVersionError">
+  ```
+  DatabaseVersionError: Incompatible version
+  ```
+  
+  Nicotine+ automatically rebuilds shares when database version changes.
+</Accordion>
+
+<Accordion title="DatabaseError">
+  ```
+  DatabaseError: Not a database file
+  ```
+  
+  Corrupted database. Delete and rescan:
+  ```bash
+  rm ~/.local/share/nicotine/*.dbn
+  nicotine --rescan
+  ```
+</Accordion>
+
+<Accordion title="Scanning Failed">
+  ```
+  Serious error occurred while rescanning shares
+  ```
+  
+  Check logs for specific errors:
+  - Permission denied on folders
+  - Invalid characters in paths
+  - Filesystem errors
+  
+  Delete databases and retry:
+  ```bash
+  rm ~/.local/share/nicotine/*.dbn
+  nicotine --rescan
+  ```
+</Accordion>
+
+## Best Practices
+
+<Tip>
+**Organize Your Shares:**
+- Use descriptive virtual names
+- Group similar content
+- Separate public/private content using permission levels
+- Use filters to exclude system files
+</Tip>
+
+<Tip>
+**Optimize Scanning:**
+- Enable daily rescanning during off-hours
+- Use `rescanonstartup = False` for very large collections
+- Manually rescan after adding significant content
+- Don't share folders with millions of tiny files
+</Tip>
+
+<Tip>
+**Protect Privacy:**
+- Use buddy/trusted shares for private content
+- Review share filters to exclude personal files
+- Disable `reveal_buddy_shares` and `reveal_trusted_shares`
+- Check shared content before rescanning
+</Tip>
