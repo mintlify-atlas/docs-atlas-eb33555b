@@ -31,19 +31,31 @@ shares = Shares()
 Rescans all shared folders and rebuilds the file index.
 
 ```python
-shares.rescan_shares()
+shares.rescan_shares(init=False, rescan=True, rebuild=False, use_thread=True, force=False)
 ```
 
-<ParamField path="init" type="bool" default="False">
+<ParamField path="init" type="bool" default={false}>
   Whether this is an initial scan on startup
 </ParamField>
 
-<ParamField path="force" type="bool" default="False">
+<ParamField path="rescan" type="bool" default={true}>
+  Whether to perform a rescan of shared folders
+</ParamField>
+
+<ParamField path="rebuild" type="bool" default={false}>
+  Whether to rebuild the entire share database from scratch
+</ParamField>
+
+<ParamField path="use_thread" type="bool" default={true}>
+  Whether to run the scan in a separate thread
+</ParamField>
+
+<ParamField path="force" type="bool" default={false}>
   Force rescan even if shares haven't changed
 </ParamField>
 
 <Note>
-  Rescanning can take significant time for large share collections. The scan runs in a separate thread to avoid blocking.
+  Rescanning can take significant time for large share collections. The scan runs in a separate thread by default to avoid blocking.
 </Note>
 
 #### convert_shares()
